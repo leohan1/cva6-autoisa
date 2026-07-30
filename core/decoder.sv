@@ -118,6 +118,38 @@ module decoder
   logic check_fprm;
   riscv::instruction_t instr;
   assign instr = riscv::instruction_t'(instruction_i);
+  // AutoISA host-side decode overlay. It only overrides forms that the
+  // current synchronous CV-X-IF can transport without semantic loss.
+  logic autoisa_ci_valid;
+  logic autoisa_ci_illegal;
+  logic autoisa_native_cvxif_supported;
+  logic autoisa_gather_required;
+  logic autoisa_memory_form;
+  logic [4:0] autoisa_rs1;
+  logic [4:0] autoisa_rs2;
+  logic [4:0] autoisa_rs3;
+  logic [4:0] autoisa_rd;
+  logic autoisa_second_destination;
+  logic [4:0] autoisa_rd2;
+  logic [2:0] autoisa_layout_id;
+  logic [6:0] autoisa_semantic_id;
+
+  autoisa_ci_cva6_decode_adapter i_autoisa_ci_decode_adapter (
+      .instr_i(instruction_i),
+      .ci_valid_o(autoisa_ci_valid),
+      .ci_illegal_o(autoisa_ci_illegal),
+      .native_cvxif_supported_o(autoisa_native_cvxif_supported),
+      .gather_required_o(autoisa_gather_required),
+      .memory_form_o(autoisa_memory_form),
+      .rs1_o(autoisa_rs1),
+      .rs2_o(autoisa_rs2),
+      .rs3_o(autoisa_rs3),
+      .rd_o(autoisa_rd),
+      .second_destination_o(autoisa_second_destination),
+      .rd2_o(autoisa_rd2),
+      .layout_id_o(autoisa_layout_id),
+      .semantic_id_o(autoisa_semantic_id)
+  );
   // transformed instruction
   logic [31:0] tinst;
   // --------------------
@@ -1733,6 +1765,14 @@ module decoder
                                  instr.rtype.opcode == riscv::OpcodeNmadd ||
                                  instr.rtype.opcode == riscv::OpcodeNmsub ? RS3 : MUX_RD_RS3;
       end
+      if (~ex_i.valid && autoisa_native_cvxif_supported) begin
+        instruction_o.fu  = CVXIF;
+        instruction_o.rs1 = autoisa_rs1;
+        instruction_o.rs2 = autoisa_rs2;
+        instruction_o.rd  = autoisa_rd;
+        instruction_o.op  = ariane_pkg::OFFLOAD;
+        imm_select         = NOIMM;
+      end
     end
 
     // Accelerator instructions.
@@ -1822,12 +1862,34 @@ module decoder
       end
     endcase
 
+    // The scoreboard's result field carries the third register address for
+    // three-port CV-X-IF transactions. The overlay supplies the layout-defined
+    // field instead of assuming the architectural rd bit position.
+    if (CVA6Cfg.CvxifEn && autoisa_native_cvxif_supported) begin
+      instruction_o.result  = {{CVA6Cfg.XLEN - 5{1'b0}}, autoisa_rs3};
+      instruction_o.use_imm = 1'b0;
+    end
+
     if (CVA6Cfg.EnableAccelerator) begin
       if (is_accel) begin
         instruction_o.result  = acc_instruction.result;
         instruction_o.use_imm = acc_instruction.use_imm;
       end
     end
+  end
+
+  logic unused_autoisa_decode;
+  always_comb begin
+    unused_autoisa_decode = ^{
+      autoisa_ci_valid,
+      autoisa_ci_illegal,
+      autoisa_gather_required,
+      autoisa_memory_form,
+      autoisa_second_destination,
+      autoisa_rd2,
+      autoisa_layout_id,
+      autoisa_semantic_id
+    };
   end
 
   // ---------------------

@@ -122,6 +122,8 @@ sources:
       - core/controller.sv
       - core/csr_buffer.sv
       - core/csr_regfile.sv
+      - core/autoisa/autoisa_ci_layout_decoder.sv
+      - core/autoisa/autoisa_ci_cva6_decode_adapter.sv
       - core/decoder.sv
       - core/ex_stage.sv
       - core/acc_dispatcher.sv

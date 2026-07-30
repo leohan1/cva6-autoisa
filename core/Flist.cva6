@@ -145,6 +145,8 @@ ${CVA6_REPO_DIR}/core/zcmt_decoder.sv
 ${CVA6_REPO_DIR}/core/csr_buffer.sv
 ${CVA6_REPO_DIR}/core/csr_regfile.sv
 ${CVA6_REPO_DIR}/core/trigger_module.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_layout_decoder.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_cva6_decode_adapter.sv
 ${CVA6_REPO_DIR}/core/decoder.sv
 ${CVA6_REPO_DIR}/core/ex_stage.sv
 ${CVA6_REPO_DIR}/core/instr_realign.sv
