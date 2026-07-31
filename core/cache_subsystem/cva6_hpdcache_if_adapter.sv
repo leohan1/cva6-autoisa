@@ -57,7 +57,14 @@ module cva6_hpdcache_if_adapter
 
     //  Response port from the L1 Dcache
     input logic          hpdcache_rsp_valid_i,
-    input hpdcache_rsp_t hpdcache_rsp_i
+    input hpdcache_rsp_t hpdcache_rsp_i,
+
+    // AutoISA H1 observation sideband.  Stock RV32 data_rdata remains XLEN
+    // wide; this sideband preserves the complete two-word requester response.
+    output logic                         autoisa_h1_rsp_valid_o,
+    output logic [2*CVA6Cfg.XLEN-1:0]   autoisa_h1_rsp_data_o,
+    output logic                         autoisa_h1_rsp_error_o,
+    output logic                         autoisa_h1_rsp_aborted_o
 );
   //  }}}
 
@@ -92,7 +99,10 @@ module cva6_hpdcache_if_adapter
       assign hpdcache_req.addr_offset = cva6_req_i.address_index;
       assign hpdcache_req.wdata = '0;
       assign hpdcache_req.op = hpdcache_pkg::HPDCACHE_REQ_LOAD;
-      assign hpdcache_req.be = cva6_req_i.data_be;
+      // An RV32 size=8 request is reserved for H1.  With reqWords=2 this
+      // selects both 32-bit words; ordinary RV32 loads retain their byte mask.
+      assign hpdcache_req.be =
+          (cva6_req_i.data_size == 2'b11) ? '1 : cva6_req_i.data_be;
       assign hpdcache_req.size = cva6_req_i.data_size;
       assign hpdcache_req.sid = hpdcache_req_sid_i;
       assign hpdcache_req.tid = cva6_req_i.data_id;
@@ -114,6 +124,10 @@ module cva6_hpdcache_if_adapter
       assign cva6_req_o.data_rdata = hpdcache_rsp_i.rdata;
       assign cva6_req_o.data_rid = hpdcache_rsp_i.tid;
       assign cva6_req_o.data_gnt = hpdcache_req_ready_i;
+      assign autoisa_h1_rsp_valid_o = hpdcache_rsp_valid_i;
+      assign autoisa_h1_rsp_data_o = hpdcache_rsp_i.rdata;
+      assign autoisa_h1_rsp_error_o = hpdcache_rsp_i.error;
+      assign autoisa_h1_rsp_aborted_o = hpdcache_rsp_i.aborted;
 
       //  Assertions
       //  {{{
@@ -137,6 +151,11 @@ module cva6_hpdcache_if_adapter
       hpdcache_pkg::hpdcache_req_op_t        amo_op;
       logic                           [31:0] amo_resp_word;
       logic                                  amo_pending_q;
+
+      assign autoisa_h1_rsp_valid_o = 1'b0;
+      assign autoisa_h1_rsp_data_o = '0;
+      assign autoisa_h1_rsp_error_o = 1'b0;
+      assign autoisa_h1_rsp_aborted_o = 1'b0;
 
       hpdcache_req_t                         hpdcache_req_amo;
       hpdcache_req_t                         hpdcache_req_store;

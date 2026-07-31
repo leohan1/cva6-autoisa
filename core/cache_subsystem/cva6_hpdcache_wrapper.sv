@@ -177,7 +177,12 @@ module cva6_hpdcache_wrapper
           .hpdcache_req_pma_o  (dcache_req_pma[r]),
 
           .hpdcache_rsp_valid_i(dcache_rsp_valid[r]),
-          .hpdcache_rsp_i      (dcache_rsp[r])
+          .hpdcache_rsp_i      (dcache_rsp[r]),
+
+          .autoisa_h1_rsp_valid_o  (/* observation-only */),
+          .autoisa_h1_rsp_data_o   (/* observation-only */),
+          .autoisa_h1_rsp_error_o  (/* observation-only */),
+          .autoisa_h1_rsp_aborted_o(/* observation-only */)
       );
     end
 
@@ -215,7 +220,12 @@ module cva6_hpdcache_wrapper
         .hpdcache_req_pma_o  (dcache_req_pma[NumPorts-1]),
 
         .hpdcache_rsp_valid_i(dcache_rsp_valid[NumPorts-1]),
-        .hpdcache_rsp_i      (dcache_rsp[NumPorts-1])
+        .hpdcache_rsp_i      (dcache_rsp[NumPorts-1]),
+
+        .autoisa_h1_rsp_valid_o  (/* unused on store port */),
+        .autoisa_h1_rsp_data_o   (/* unused on store port */),
+        .autoisa_h1_rsp_error_o  (/* unused on store port */),
+        .autoisa_h1_rsp_aborted_o(/* unused on store port */)
     );
   endgenerate
 

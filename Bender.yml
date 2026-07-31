@@ -124,6 +124,7 @@ sources:
       - core/csr_regfile.sv
       - core/autoisa/autoisa_ci_layout_decoder.sv
       - core/autoisa/autoisa_ci_cva6_decode_adapter.sv
+      - core/autoisa/autoisa_h1_pair_load.sv
       - core/decoder.sv
       - core/ex_stage.sv
       - core/acc_dispatcher.sv

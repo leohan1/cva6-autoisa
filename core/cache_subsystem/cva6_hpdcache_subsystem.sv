@@ -190,7 +190,15 @@ module cva6_hpdcache_subsystem
     userCfg.sets = CVA6Cfg.DCACHE_NUM_WORDS;
     userCfg.ways = CVA6Cfg.DCACHE_SET_ASSOC;
     userCfg.clWords = CVA6Cfg.DCACHE_LINE_WIDTH / userCfg.wordWidth;
+`ifdef AUTOISA_H1_PAIR_LOAD
+    // H1 is an RV32 pair-load experiment.  The AXI/cache access path is
+    // already 64-bit, but the stock requester interface is one XLEN word.
+    // Two request words preserve the full 64-bit response at the HPDcache
+    // requester boundary; normal RV32 consumers continue to select 32 bits.
+    userCfg.reqWords = 2;
+`else
     userCfg.reqWords = 1;
+`endif
     userCfg.reqTransIdWidth = CVA6Cfg.DcacheIdWidth;
     userCfg.reqSrcIdWidth = 3;  // Up to 8 requesters
     userCfg.victimSel = hpdcache_pkg::HPDCACHE_VICTIM_RANDOM;
