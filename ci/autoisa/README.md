@@ -75,6 +75,20 @@ WP0/WP1 only:
 python ci/autoisa/run_wp0_wp1.py --vivado D:/apps/HLS/2025.2/Vivado/bin
 ```
 
+RV32 software-toolchain preparation:
+
+```bash
+python ci/autoisa/check_riscv_toolchain.py
+```
+
+The check searches `--toolchain`, `AUTOISA_RISCV_TOOLCHAIN`, the ignored local
+`tools/xpack-riscv-none-elf-gcc-*` directory, and finally `PATH`.  It builds a
+freestanding `rv32imac_zicsr/ilp32` ELF from
+`tests/autoisa/software/minimal_d0.S`, verifies the ELF32 RISC-V header, and
+checks that the generated binary contains the expected D0 instruction encoding
+`0x007302db`.  Build outputs go to the ignored `ci/autoisa/build/software/`
+directory.
+
 Or from CMD:
 
 ```cmd

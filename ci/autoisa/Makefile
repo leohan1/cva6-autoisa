@@ -21,6 +21,7 @@
 #    make ci-gather   - run the queued 1-6R operand gather test
 #    make ci-transport - run the end-to-end CVA6 Host transport test
 #    make ci-cvxif    - run the real CV-X-IF scalar bridge test
+#    make toolchain-smoke - build and inspect the minimal RV32 AutoISA D0 ELF
 #    make clean       - remove xsim work dirs and CI logs
 #    make vars        - print resolved variables (for debugging)
 #
@@ -38,7 +39,7 @@ ROOT   := $(shell python -c "import os, sys; print(os.path.abspath(os.path.join(
 
 RUN_CI := $(CURDIR)/run_ci.py
 
-.PHONY: wp0-wp1 ci ci-v0 ci-rq ci-inf ci-result ci-proto ci-shell ci-random ci-multi ci-multi-shell ci-random-multi ci-dst-map ci-host ci-gather ci-transport ci-cvxif check-q clean vars help
+.PHONY: wp0-wp1 ci ci-v0 ci-rq ci-inf ci-result ci-proto ci-shell ci-random ci-multi ci-multi-shell ci-random-multi ci-dst-map ci-host ci-gather ci-transport ci-cvxif toolchain-smoke check-q clean vars help
 
 wp0-wp1:  ## regenerate Layout v2, run G0 tests and Vivado decoder smoke
 	"$(PYTHON)" "$(CURDIR)/run_wp0_wp1.py" --vivado "$(VIVADO)"
@@ -91,6 +92,9 @@ ci-transport:  ## run the end-to-end Host transport test
 ci-cvxif:  ## run the native scalar CV-X-IF bridge test
 	"$(PYTHON)" "$(RUN_CI)" --root "$(ROOT)" --vivado "$(VIVADO)" --tb autoisa_ci_cvxif_coprocessor
 
+toolchain-smoke:  ## build and inspect the minimal RV32 AutoISA D0 ELF
+	"$(PYTHON)" "$(CURDIR)/check_riscv_toolchain.py"
+
 check-q:  ## audit Q00-Q15 against current XSim logs
 	"$(PYTHON)" "$(CURDIR)/check_q_coverage.py"
 
@@ -122,6 +126,7 @@ help:  ## show this help
 	@echo   make ci-gather run the queued 1-6R operand gather test
 	@echo   make ci-transport run the end-to-end CVA6 Host transport test
 	@echo   make ci-cvxif run the native scalar CV-X-IF bridge test
+	@echo   make toolchain-smoke build and inspect the minimal RV32 AutoISA D0 ELF
 	@echo   make check-q audit Q00-Q15 against current passing logs
 	@echo   make clean    remove xsim work dirs and CI logs
 	@echo   make vars     print resolved variables
