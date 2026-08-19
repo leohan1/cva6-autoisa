@@ -1,0 +1,10 @@
+core/autoisa/autoisa_ci_types_pkg.sv
+core/autoisa/autoisa_ci_request_queue.sv
+core/autoisa/autoisa_ci_inflight_table.sv
+core/autoisa/autoisa_ci_dummy_engine.sv
+core/autoisa/autoisa_ci_result_queue.sv
+core/autoisa/autoisa_ci_engine_skid.sv
+core/autoisa/autoisa_ci_engine_descriptor.sv
+core/autoisa/autoisa_ci_multi_engine_cluster.sv
+core/autoisa/autoisa_ci_concurrent_shell.sv
+core/autoisa/tb/tb_autoisa_ci_random_100k.sv

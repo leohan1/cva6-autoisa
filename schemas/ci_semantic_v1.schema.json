@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openhwgroup.org/autoisa/ci_semantic_v1.schema.json",
+  "title": "AutoISA compute-only semantic v1",
+  "type": "object",
+  "required": ["schema_version", "ci_id", "name", "operands", "results", "expression"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "ci_id": {"type": "integer", "minimum": 0, "maximum": 255},
+    "name": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+    "operands": {"type": "integer", "minimum": 1, "maximum": 6},
+    "results": {"type": "integer", "minimum": 1, "maximum": 2},
+    "immediate": {"type": "boolean"},
+    "expression": {"type": "string", "minLength": 1},
+    "latency": {"type": "integer", "minimum": 1},
+    "initiation_interval": {"type": "integer", "minimum": 1},
+    "compute_only": {"const": true}
+  }
+}

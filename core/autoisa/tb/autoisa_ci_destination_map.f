@@ -1,0 +1,3 @@
+core/autoisa/autoisa_ci_types_pkg.sv
+core/autoisa/autoisa_ci_destination_map.sv
+core/autoisa/tb/tb_autoisa_ci_destination_map.sv

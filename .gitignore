@@ -57,3 +57,12 @@ Bender.lock
 /verif/sim/encaps.traces
 /verif/sim/iti.traces
 /verif/sim/verilator.fst.hier
+
+# AutoISA/Vivado generated state.  Source manifests and checked-in evidence
+# remain tracked; only reproducible compiler products are ignored.
+/.Xil/
+/xsim.dir/
+/*.wdb
+/*.pb
+/dfx_runtime.txt
+/ci/autoisa/build/

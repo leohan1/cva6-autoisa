@@ -1,0 +1,15 @@
+{
+  "seed": "0x1a2b3c4d",
+  "stimulus_cycles": 100000,
+  "accepted": 8760,
+  "retired": 4268,
+  "killed": 4492,
+  "flushes": 4,
+  "orphan_completions": 1153,
+  "request_hwm": 1,
+  "inflight_hwm": 1,
+  "result_hwm": 3,
+  "credit_hwm": 1,
+  "credit_stall_cycles": 0,
+  "errors": 0
+}

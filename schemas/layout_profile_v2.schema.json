@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openhwgroup.org/autoisa/layout_profile_v2.schema.json",
+  "title": "AutoISA Compute-only Layout Profile v2",
+  "type": "object",
+  "required": ["schema_version", "abi_version", "xlen", "layouts"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"const": "2.0"},
+    "abi_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+$"},
+    "xlen": {"const": 32},
+    "layouts": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/layout"}}
+  },
+  "$defs": {
+    "slice": {
+      "type": "object",
+      "required": ["instr_msb", "instr_lsb", "value_lsb"],
+      "additionalProperties": false,
+      "properties": {
+        "instr_msb": {"type": "integer", "minimum": 0, "maximum": 31},
+        "instr_lsb": {"type": "integer", "minimum": 0, "maximum": 31},
+        "value_lsb": {"type": "integer", "minimum": 0, "maximum": 31}
+      }
+    },
+    "encodedField": {
+      "type": "object",
+      "required": ["name", "namespace", "slices"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "namespace": {"enum": ["GPR32", "GPR16", "RVC8"]},
+        "reject_zero": {"type": "boolean"},
+        "slices": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/slice"}}
+      },
+      "additionalProperties": false
+    },
+    "destination": {
+      "oneOf": [
+        {"$ref": "#/$defs/encodedField"},
+        {
+          "type": "object",
+          "required": ["name", "namespace", "derived_from", "offset"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {"type": "string"},
+            "namespace": {"const": "DERIVED_PAIR"},
+            "derived_from": {"type": "string"},
+            "offset": {"const": 1}
+          }
+        }
+      ]
+    },
+    "semantic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "value"],
+          "additionalProperties": false,
+          "properties": {"kind": {"const": "fixed"}, "value": {"type": "integer", "minimum": 0, "maximum": 255}}
+        },
+        {
+          "type": "object",
+          "required": ["kind", "width", "slices"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": {"const": "encoded"},
+            "width": {"type": "integer", "minimum": 1, "maximum": 8},
+            "slices": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/slice"}}
+          }
+        }
+      ]
+    },
+    "immediate": {
+      "type": "object",
+      "required": ["width", "signed", "scale", "slices"],
+      "additionalProperties": false,
+      "properties": {
+        "width": {"type": "integer", "minimum": 1, "maximum": 32},
+        "signed": {"type": "boolean"},
+        "scale": {"type": "integer", "minimum": 0, "maximum": 31},
+        "slices": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/slice"}}
+      }
+    },
+    "layout": {
+      "type": "object",
+      "required": ["id", "name", "enabled", "compute_only", "match", "mask", "backend", "logical_sources", "logical_destinations", "semantic", "sources", "destinations"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "integer", "minimum": 0, "maximum": 15},
+        "name": {"type": "string", "pattern": "^L_[A-Z0-9_]+$"},
+        "enabled": {"type": "boolean"},
+        "compute_only": {"type": "boolean"},
+        "match": {"type": "string", "pattern": "^0x[0-9a-fA-F]{8}$"},
+        "mask": {"type": "string", "pattern": "^0x[0-9a-fA-F]{8}$"},
+        "backend": {"enum": ["AUTOISA_HOST_LOCAL", "AUTOISA_CVXIF_NATIVE", "AUTOISA_DIRECT_CI_EXTENDED", "AUTOISA_HOST_MEMORY_EXPERIMENTAL"]},
+        "logical_sources": {"type": "integer", "minimum": 1, "maximum": 6},
+        "logical_destinations": {"type": "integer", "minimum": 1, "maximum": 2},
+        "semantic": {"$ref": "#/$defs/semantic"},
+        "sources": {"type": "array", "minItems": 1, "maxItems": 6, "items": {"$ref": "#/$defs/encodedField"}},
+        "destinations": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"$ref": "#/$defs/destination"}},
+        "immediate": {"$ref": "#/$defs/immediate"},
+        "pair_constraint": {
+          "type": "object",
+          "required": ["base", "nonzero", "even", "max"],
+          "additionalProperties": false,
+          "properties": {
+            "base": {"type": "string"}, "nonzero": {"type": "boolean"}, "even": {"type": "boolean"}, "max": {"type": "integer", "minimum": 0, "maximum": 31}
+          }
+        }
+      }
+    }
+  }
+}

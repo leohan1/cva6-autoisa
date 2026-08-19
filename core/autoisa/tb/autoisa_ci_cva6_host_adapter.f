@@ -1,0 +1,5 @@
+core/autoisa/autoisa_ci_types_pkg.sv
+core/autoisa/autoisa_ci_layout_decoder_v2.sv
+core/autoisa/autoisa_ci_destination_map.sv
+core/autoisa/autoisa_ci_cva6_host_adapter.sv
+core/autoisa/tb/tb_autoisa_ci_cva6_host_adapter.sv

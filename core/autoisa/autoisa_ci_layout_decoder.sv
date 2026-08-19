@@ -5,7 +5,7 @@ module autoisa_ci_layout_decoder #(
     parameter int unsigned MAX_SRC = 4,
     parameter int unsigned MAX_DST = 2
 ) (
-    input  logic [31:0] instr_i,
+    input  wire [31:0] instr_i,
     output logic        valid_o,
     output logic        illegal_o,
     output logic [2:0]  layout_id_o,

@@ -111,6 +111,26 @@ module ariane import ariane_pkg::*; #(
   );
 
   if (CVA6Cfg.CvxifEn) begin: gen_cvxif
+`ifdef AUTOISA_CI_CVXIF
+    // Real CVA6 integration path for the native scalar AutoISA subset.  The
+    // wider 1-6R/pair Direct-CI transport remains a sidecar integration path.
+    autoisa_ci_cvxif_coprocessor #(
+      .NR_RS (CVA6Cfg.X_NUM_RS),
+      .XLEN (CVA6Cfg.XLEN),
+      .TRANS_ID_WIDTH (CVA6Cfg.X_ID_WIDTH),
+      .hartid_t (hartid_t),
+      .x_issue_req_t (x_issue_req_t),
+      .x_issue_resp_t (x_issue_resp_t),
+      .x_register_t (x_register_t),
+      .x_commit_t (x_commit_t),
+      .x_result_t (x_result_t),
+      .cvxif_req_t (cvxif_req_t),
+      .cvxif_resp_t (cvxif_resp_t)
+    ) i_autoisa_ci_cvxif (
+      .clk_i (clk_i), .rst_ni (rst_ni),
+      .cvxif_req_i (cvxif_req), .cvxif_resp_o (cvxif_resp)
+    );
+`else
     if (CVA6Cfg.CoproType == config_pkg::COPRO_EXAMPLE) begin: gen_COPRO_EXAMPLE
       cvxif_example_coprocessor #(
         .NrRgprPorts (CVA6Cfg.NrRgprPorts),
@@ -137,6 +157,7 @@ module ariane import ariane_pkg::*; #(
     end else begin: gen_COPRO_NONE
       assign cvxif_resp = '{compressed_ready: 1'b1, issue_ready: 1'b1, register_ready: 1'b1, default: '0};
     end
+`endif
   end else begin: gen_no_cvxif
     assign cvxif_resp = '0;
   end

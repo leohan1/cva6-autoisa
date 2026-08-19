@@ -1,0 +1,650 @@
+{
+  "$schema": "../schemas/layout_profile_v2.schema.json",
+  "abi_version": "1.0",
+  "layouts": [
+    {
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "GPR32",
+          "reject_zero": true,
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 11,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 0,
+      "logical_destinations": 1,
+      "logical_sources": 2,
+      "mask": "0x0000707f",
+      "match": "0x0000005b",
+      "name": "L_2R1W_GPR32",
+      "semantic": {
+        "kind": "encoded",
+        "slices": [
+          {
+            "instr_lsb": 25,
+            "instr_msb": 31,
+            "value_lsb": 0
+          }
+        ],
+        "width": 7
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 19,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 20,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "GPR32",
+          "reject_zero": true,
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 11,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 1,
+      "logical_destinations": 1,
+      "logical_sources": 3,
+      "mask": "0x0000707f",
+      "match": "0x0000105b",
+      "name": "L_3R1W_GPR32",
+      "semantic": {
+        "kind": "encoded",
+        "slices": [
+          {
+            "instr_lsb": 30,
+            "instr_msb": 31,
+            "value_lsb": 0
+          }
+        ],
+        "width": 2
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 19,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 20,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs3",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 25,
+              "instr_msb": 29,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 9,
+              "instr_msb": 11,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 2,
+      "logical_destinations": 1,
+      "logical_sources": 4,
+      "mask": "0x0000707f",
+      "match": "0x0000205b",
+      "name": "L_4R1W_GPR8",
+      "semantic": {
+        "kind": "encoded",
+        "slices": [
+          {
+            "instr_lsb": 27,
+            "instr_msb": 31,
+            "value_lsb": 0
+          }
+        ],
+        "width": 5
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 17,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 18,
+              "instr_msb": 20,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs3",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 21,
+              "instr_msb": 23,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs4",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 24,
+              "instr_msb": 26,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "GPR32",
+          "reject_zero": true,
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 11,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "derived_from": "rd0",
+          "name": "rd1",
+          "namespace": "DERIVED_PAIR",
+          "offset": 1
+        }
+      ],
+      "enabled": true,
+      "id": 3,
+      "logical_destinations": 2,
+      "logical_sources": 2,
+      "mask": "0x0000707f",
+      "match": "0x0000305b",
+      "name": "L_2R2W_PAIR",
+      "pair_constraint": {
+        "base": "rd0",
+        "even": true,
+        "max": 30,
+        "nonzero": true
+      },
+      "semantic": {
+        "kind": "encoded",
+        "slices": [
+          {
+            "instr_lsb": 25,
+            "instr_msb": 31,
+            "value_lsb": 0
+          }
+        ],
+        "width": 7
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 19,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 20,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 9,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rd1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 27,
+              "instr_msb": 29,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 4,
+      "logical_destinations": 2,
+      "logical_sources": 4,
+      "mask": "0xc000707f",
+      "match": "0x0000405b",
+      "name": "L_4R2W_GPR8",
+      "semantic": {
+        "kind": "fixed",
+        "value": 4
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 17,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 18,
+              "instr_msb": 20,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs3",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 21,
+              "instr_msb": 23,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs4",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 24,
+              "instr_msb": 26,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 9,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 5,
+      "logical_destinations": 1,
+      "logical_sources": 6,
+      "mask": "0xf000007f",
+      "match": "0x0000002b",
+      "name": "L_6R1W_GPR8",
+      "semantic": {
+        "kind": "fixed",
+        "value": 5
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 10,
+              "instr_msb": 12,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 13,
+              "instr_msb": 15,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs3",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 16,
+              "instr_msb": 18,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs4",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 19,
+              "instr_msb": 21,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs5",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 22,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs6",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 25,
+              "instr_msb": 27,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 9,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rd1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 10,
+              "instr_msb": 12,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 6,
+      "logical_destinations": 2,
+      "logical_sources": 6,
+      "mask": "0x8000007f",
+      "match": "0x0000007b",
+      "name": "L_6R2W_GPR8",
+      "semantic": {
+        "kind": "fixed",
+        "value": 6
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 13,
+              "instr_msb": 15,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 16,
+              "instr_msb": 18,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs3",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 19,
+              "instr_msb": 21,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs4",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 22,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs5",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 25,
+              "instr_msb": 27,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs6",
+          "namespace": "RVC8",
+          "slices": [
+            {
+              "instr_lsb": 28,
+              "instr_msb": 30,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "compute_only": true,
+      "destinations": [
+        {
+          "name": "rd0",
+          "namespace": "GPR32",
+          "reject_zero": true,
+          "slices": [
+            {
+              "instr_lsb": 7,
+              "instr_msb": 11,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ],
+      "enabled": true,
+      "id": 7,
+      "immediate": {
+        "scale": 0,
+        "signed": true,
+        "slices": [
+          {
+            "instr_lsb": 25,
+            "instr_msb": 31,
+            "value_lsb": 3
+          },
+          {
+            "instr_lsb": 12,
+            "instr_msb": 14,
+            "value_lsb": 0
+          }
+        ],
+        "width": 10
+      },
+      "logical_destinations": 1,
+      "logical_sources": 2,
+      "mask": "0x0000007f",
+      "match": "0x0000000b",
+      "name": "L_2R1W_IMM",
+      "semantic": {
+        "kind": "fixed",
+        "value": 7
+      },
+      "sources": [
+        {
+          "name": "rs1",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 15,
+              "instr_msb": 19,
+              "value_lsb": 0
+            }
+          ]
+        },
+        {
+          "name": "rs2",
+          "namespace": "GPR32",
+          "slices": [
+            {
+              "instr_lsb": 20,
+              "instr_msb": 24,
+              "value_lsb": 0
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "schema_version": "2.0",
+  "xlen": 32
+}

@@ -109,6 +109,19 @@ ${CVA6_REPO_DIR}/core/cvxif_example/instr_decoder.sv
 ${CVA6_REPO_DIR}/core/cvxif_example/compressed_instr_decoder.sv
 ${CVA6_REPO_DIR}/core/cvxif_example/copro_alu.sv
 
+// AutoISA CV-X-IF implementation (enabled at ariane with AUTOISA_CI_CVXIF)
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_types_pkg.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_layout_decoder_v2.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_request_queue.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_inflight_table.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_dummy_engine.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_result_queue.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_engine_skid.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_engine_descriptor.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_multi_engine_cluster.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_concurrent_shell.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_cvxif_coprocessor.sv
+
 // Common Cells
 ${CVA6_REPO_DIR}/vendor/pulp-platform/common_cells/src/cf_math_pkg.sv
 ${CVA6_REPO_DIR}/vendor/pulp-platform/common_cells/src/fifo_v3.sv

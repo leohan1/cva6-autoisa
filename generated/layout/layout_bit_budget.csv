@@ -1,0 +1,9 @@
+layout_id,name,recognition_bits,source_bits,destination_bits,semantic_bits,immediate_bits,payload_bits,free_bits
+0,L_2R1W_GPR32,10,10,5,7,0,22,0
+1,L_3R1W_GPR32,10,15,5,2,0,22,0
+2,L_4R1W_GPR8,10,12,3,5,0,20,2
+3,L_2R2W_PAIR,10,10,5,7,0,22,0
+4,L_4R2W_GPR8,12,12,6,0,0,18,2
+5,L_6R1W_GPR8,11,18,3,0,0,21,0
+6,L_6R2W_GPR8,8,18,6,0,0,24,0
+7,L_2R1W_IMM,7,10,5,0,10,25,0

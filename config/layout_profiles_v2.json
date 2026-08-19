@@ -1,0 +1,186 @@
+{
+  "$schema": "../schemas/layout_profile_v2.schema.json",
+  "schema_version": "2.0",
+  "abi_version": "1.0",
+  "xlen": 32,
+  "layouts": [
+    {
+      "id": 0,
+      "name": "L_2R1W_GPR32",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000005b",
+      "mask": "0x0000707f",
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "logical_sources": 2,
+      "logical_destinations": 1,
+      "semantic": {"kind": "encoded", "width": 7, "slices": [{"instr_msb": 31, "instr_lsb": 25, "value_lsb": 0}]},
+      "sources": [
+        {"name": "rs1", "namespace": "GPR32", "slices": [{"instr_msb": 19, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "GPR32", "slices": [{"instr_msb": 24, "instr_lsb": 20, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "GPR32", "reject_zero": true, "slices": [{"instr_msb": 11, "instr_lsb": 7, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 1,
+      "name": "L_3R1W_GPR32",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000105b",
+      "mask": "0x0000707f",
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "logical_sources": 3,
+      "logical_destinations": 1,
+      "semantic": {"kind": "encoded", "width": 2, "slices": [{"instr_msb": 31, "instr_lsb": 30, "value_lsb": 0}]},
+      "sources": [
+        {"name": "rs1", "namespace": "GPR32", "slices": [{"instr_msb": 19, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "GPR32", "slices": [{"instr_msb": 24, "instr_lsb": 20, "value_lsb": 0}]},
+        {"name": "rs3", "namespace": "GPR32", "slices": [{"instr_msb": 29, "instr_lsb": 25, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "GPR32", "reject_zero": true, "slices": [{"instr_msb": 11, "instr_lsb": 7, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "L_4R1W_GPR8",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000205b",
+      "mask": "0x0000707f",
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "logical_sources": 4,
+      "logical_destinations": 1,
+      "semantic": {"kind": "encoded", "width": 5, "slices": [{"instr_msb": 31, "instr_lsb": 27, "value_lsb": 0}]},
+      "sources": [
+        {"name": "rs1", "namespace": "RVC8", "slices": [{"instr_msb": 17, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "RVC8", "slices": [{"instr_msb": 20, "instr_lsb": 18, "value_lsb": 0}]},
+        {"name": "rs3", "namespace": "RVC8", "slices": [{"instr_msb": 23, "instr_lsb": 21, "value_lsb": 0}]},
+        {"name": "rs4", "namespace": "RVC8", "slices": [{"instr_msb": 26, "instr_lsb": 24, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "RVC8", "slices": [{"instr_msb": 11, "instr_lsb": 9, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "L_2R2W_PAIR",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000305b",
+      "mask": "0x0000707f",
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "logical_sources": 2,
+      "logical_destinations": 2,
+      "semantic": {"kind": "encoded", "width": 7, "slices": [{"instr_msb": 31, "instr_lsb": 25, "value_lsb": 0}]},
+      "sources": [
+        {"name": "rs1", "namespace": "GPR32", "slices": [{"instr_msb": 19, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "GPR32", "slices": [{"instr_msb": 24, "instr_lsb": 20, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "GPR32", "reject_zero": true, "slices": [{"instr_msb": 11, "instr_lsb": 7, "value_lsb": 0}]},
+        {"name": "rd1", "namespace": "DERIVED_PAIR", "derived_from": "rd0", "offset": 1}
+      ],
+      "pair_constraint": {"base": "rd0", "nonzero": true, "even": true, "max": 30}
+    },
+    {
+      "id": 4,
+      "name": "L_4R2W_GPR8",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000405b",
+      "mask": "0xc000707f",
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "logical_sources": 4,
+      "logical_destinations": 2,
+      "semantic": {"kind": "fixed", "value": 4},
+      "sources": [
+        {"name": "rs1", "namespace": "RVC8", "slices": [{"instr_msb": 17, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "RVC8", "slices": [{"instr_msb": 20, "instr_lsb": 18, "value_lsb": 0}]},
+        {"name": "rs3", "namespace": "RVC8", "slices": [{"instr_msb": 23, "instr_lsb": 21, "value_lsb": 0}]},
+        {"name": "rs4", "namespace": "RVC8", "slices": [{"instr_msb": 26, "instr_lsb": 24, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "RVC8", "slices": [{"instr_msb": 9, "instr_lsb": 7, "value_lsb": 0}]},
+        {"name": "rd1", "namespace": "RVC8", "slices": [{"instr_msb": 29, "instr_lsb": 27, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "L_6R1W_GPR8",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000002b",
+      "mask": "0xf000007f",
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "logical_sources": 6,
+      "logical_destinations": 1,
+      "semantic": {"kind": "fixed", "value": 5},
+      "sources": [
+        {"name": "rs1", "namespace": "RVC8", "slices": [{"instr_msb": 12, "instr_lsb": 10, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "RVC8", "slices": [{"instr_msb": 15, "instr_lsb": 13, "value_lsb": 0}]},
+        {"name": "rs3", "namespace": "RVC8", "slices": [{"instr_msb": 18, "instr_lsb": 16, "value_lsb": 0}]},
+        {"name": "rs4", "namespace": "RVC8", "slices": [{"instr_msb": 21, "instr_lsb": 19, "value_lsb": 0}]},
+        {"name": "rs5", "namespace": "RVC8", "slices": [{"instr_msb": 24, "instr_lsb": 22, "value_lsb": 0}]},
+        {"name": "rs6", "namespace": "RVC8", "slices": [{"instr_msb": 27, "instr_lsb": 25, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "RVC8", "slices": [{"instr_msb": 9, "instr_lsb": 7, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 6,
+      "name": "L_6R2W_GPR8",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000007b",
+      "mask": "0x8000007f",
+      "backend": "AUTOISA_DIRECT_CI_EXTENDED",
+      "logical_sources": 6,
+      "logical_destinations": 2,
+      "semantic": {"kind": "fixed", "value": 6},
+      "sources": [
+        {"name": "rs1", "namespace": "RVC8", "slices": [{"instr_msb": 15, "instr_lsb": 13, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "RVC8", "slices": [{"instr_msb": 18, "instr_lsb": 16, "value_lsb": 0}]},
+        {"name": "rs3", "namespace": "RVC8", "slices": [{"instr_msb": 21, "instr_lsb": 19, "value_lsb": 0}]},
+        {"name": "rs4", "namespace": "RVC8", "slices": [{"instr_msb": 24, "instr_lsb": 22, "value_lsb": 0}]},
+        {"name": "rs5", "namespace": "RVC8", "slices": [{"instr_msb": 27, "instr_lsb": 25, "value_lsb": 0}]},
+        {"name": "rs6", "namespace": "RVC8", "slices": [{"instr_msb": 30, "instr_lsb": 28, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "RVC8", "slices": [{"instr_msb": 9, "instr_lsb": 7, "value_lsb": 0}]},
+        {"name": "rd1", "namespace": "RVC8", "slices": [{"instr_msb": 12, "instr_lsb": 10, "value_lsb": 0}]}
+      ]
+    },
+    {
+      "id": 7,
+      "name": "L_2R1W_IMM",
+      "enabled": true,
+      "compute_only": true,
+      "match": "0x0000000b",
+      "mask": "0x0000007f",
+      "backend": "AUTOISA_CVXIF_NATIVE",
+      "logical_sources": 2,
+      "logical_destinations": 1,
+      "semantic": {"kind": "fixed", "value": 7},
+      "sources": [
+        {"name": "rs1", "namespace": "GPR32", "slices": [{"instr_msb": 19, "instr_lsb": 15, "value_lsb": 0}]},
+        {"name": "rs2", "namespace": "GPR32", "slices": [{"instr_msb": 24, "instr_lsb": 20, "value_lsb": 0}]}
+      ],
+      "destinations": [
+        {"name": "rd0", "namespace": "GPR32", "reject_zero": true, "slices": [{"instr_msb": 11, "instr_lsb": 7, "value_lsb": 0}]}
+      ],
+      "immediate": {
+        "width": 10,
+        "signed": true,
+        "scale": 0,
+        "slices": [
+          {"instr_msb": 31, "instr_lsb": 25, "value_lsb": 3},
+          {"instr_msb": 14, "instr_lsb": 12, "value_lsb": 0}
+        ]
+      }
+    }
+  ]
+}

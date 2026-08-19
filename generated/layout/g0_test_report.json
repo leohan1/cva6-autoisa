@@ -1,0 +1,10 @@
+{
+  "deterministic_generation": "PASS",
+  "enabled_layouts": 8,
+  "gate": "G0",
+  "roundtrip_instructions": 10000,
+  "scattered_immediate": "PASS",
+  "schema_positive_negative": "PASS",
+  "six_read_two_write": "PASS",
+  "vivado_layout_smoke": "PASS"
+}

@@ -1,0 +1,22 @@
+{
+  "scope": "AutoISA compute-only CI harness standalone RTL and concurrent shell",
+  "requirements_source": "cva6-autoisa.wiki/AutoISA-Compute‐only-CI-Harness.md",
+  "requirements": {
+    "Q00": {"status": "covered", "evidence": ["autoisa_ci_request_queue"], "check": "DEPTH=1 enqueue/dequeue and ordering"},
+    "Q01": {"status": "covered", "evidence": ["autoisa_ci_request_queue"], "check": "queue fill plus DEPTH+2 backpressure attempts"},
+    "Q02": {"status": "covered", "evidence": ["autoisa_ci_multi_engine_cluster", "autoisa_ci_multi_engine_shell"], "check": "oldest-ready scheduling and head bypass"},
+    "Q03": {"status": "covered", "evidence": ["autoisa_ci_engine_protocols", "autoisa_ci_multi_engine_shell"], "check": "variable latency and out-of-order engine completion"},
+    "Q04": {"status": "covered", "evidence": ["autoisa_ci_random_100k", "autoisa_ci_random_100k_multi"], "check": "random result backpressure with bit-exact scoreboard"},
+    "Q05": {"status": "covered", "evidence": ["autoisa_ci_concurrent_shell"], "check": "completion credits prevent result-path overcommit"},
+    "Q06": {"status": "covered", "evidence": ["autoisa_ci_request_queue", "autoisa_ci_result_queue"], "check": "full-boundary replacement, bypass, and stable backpressure"},
+    "Q07": {"status": "covered", "evidence": ["autoisa_ci_request_queue"], "check": "DEPTH=4 pointers wrap 128 times"},
+    "Q08": {"status": "covered", "evidence": ["autoisa_ci_concurrent_shell", "autoisa_ci_multi_engine_shell"], "check": "kill before engine dispatch"},
+    "Q09": {"status": "covered", "evidence": ["autoisa_ci_concurrent_shell", "autoisa_ci_multi_engine_shell"], "check": "kill while engine is running and late completion drain"},
+    "Q10": {"status": "covered", "evidence": ["autoisa_ci_inflight_table"], "check": "kill after completion before commit"},
+    "Q11": {"status": "covered", "evidence": ["autoisa_ci_request_queue", "autoisa_ci_result_queue", "autoisa_ci_concurrent_shell", "autoisa_ci_multi_engine_shell"], "check": "flush across queued, pending, running, inflight, and result states"},
+    "Q12": {"status": "covered", "evidence": ["autoisa_ci_random_100k", "autoisa_ci_random_100k_multi"], "check": "tag wrap, epoch identity, and stale completion rejection"},
+    "Q13": {"status": "covered", "evidence": ["autoisa_ci_result_queue"], "check": "atomic two-word result entry and backpressure stability"},
+    "Q14": {"status": "covered", "evidence": ["autoisa_ci_inflight_table", "autoisa_ci_concurrent_shell"], "check": "duplicate live identity rejection"},
+    "Q15": {"status": "covered", "evidence": ["autoisa_ci_random_100k", "autoisa_ci_random_100k_multi"], "check": "100000-cycle single- and multi-engine constrained-random regressions"}
+  }
+}
