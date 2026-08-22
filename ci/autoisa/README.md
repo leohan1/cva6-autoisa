@@ -89,6 +89,24 @@ checks that the generated binary contains the expected D0 instruction encoding
 `0x007302db`.  Build outputs go to the ignored `ci/autoisa/build/software/`
 directory.
 
+Minimal program-level AutoISA closure:
+
+```bash
+make -C ci/autoisa elf-smoke VIVADO=D:/apps/HLS/2025.2/Vivado/bin
+# or
+python ci/autoisa/run_autoisa_elf_smoke.py --vivado D:/apps/HLS/2025.2/Vivado/bin
+```
+
+This builds the D0 ELF and memory image, compiles the full `cv32a65x` Ariane
+design with `AUTOISA_CI_CVXIF`, boots it at `0x80000000`, and checks the real
+issue/commit/result path. The program branches on the value written back to
+`x5` and writes `tohost=1` only when the result is 42. A passing run reports:
+
+```text
+DATA: cycles=94 autoisa_issue=1 commit=1 result=1 last_result=42 tohost=1
+PASS: minimal AutoISA D0 ELF architectural closure
+```
+
 Or from CMD:
 
 ```cmd
@@ -204,6 +222,7 @@ The 2026-08-19 baseline was revalidated with Vivado/XSim 2025.2:
 - Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
 - Full Ariane smoke: stock and `AUTOISA_CI_CVXIF` both compile, elaborate, and run to 195 ns.
 
-The current integration boundary is still reset-level Ariane smoke.  Executing
-an ELF containing AutoISA instructions and checking architectural retirement is
-the next gate; this baseline does not claim that program-level closure.
+The minimum program-level gate is now closed: the D0 ELF executes through the
+real Ariane/CV-X-IF/AutoISA path, returns 42, writes the destination register,
+passes a software branch check, and signals `tohost=1`. Broader instruction,
+exception, interrupt, and workload coverage remains outside this minimum gate.

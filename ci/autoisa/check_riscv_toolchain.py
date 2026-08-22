@@ -90,9 +90,10 @@ def main() -> int:
     build_dir = args.build_dir.resolve()
     build_dir.mkdir(parents=True, exist_ok=True)
     source = ROOT / "tests/autoisa/software/minimal_d0.S"
-    linker = ROOT / "config/gen_from_riscv_config/cv32a65x/linker/link.ld"
+    linker = ROOT / "tests/autoisa/software/minimal_d0.ld"
     elf = build_dir / "minimal_d0.elf"
     binary = build_dir / "minimal_d0.bin"
+    hex_image = build_dir / "minimal_d0.hex"
     disassembly = build_dir / "minimal_d0.dump"
 
     version = run([str(tools["gcc"]), "--version"], capture=True).splitlines()[0]
@@ -102,7 +103,8 @@ def main() -> int:
         "-static", "-Wl,--build-id=none", "-T", str(linker), str(source),
         "-o", str(elf),
     ])
-    run([str(tools["objcopy"]), "-O", "binary", str(elf), str(binary)])
+    run([str(tools["objcopy"]), "-O", "binary", "--only-section=.text.init",
+         str(elf), str(binary)])
     header = run([str(tools["readelf"]), "-h", str(elf)], capture=True)
     dump = run([str(tools["objdump"]), "-d", str(elf)], capture=True)
     disassembly.write_text(dump, encoding="utf-8", newline="\n")
@@ -110,15 +112,25 @@ def main() -> int:
     if "Class:                             ELF32" not in header or "Machine:                           RISC-V" not in header:
         print("ERROR: output is not an ELF32 RISC-V image", file=sys.stderr)
         return 1
-    if EXPECTED_D0 not in binary.read_bytes():
+    image = binary.read_bytes()
+    if EXPECTED_D0 not in image:
         print("ERROR: minimal ELF does not contain expected D0 encoding 0x007302db", file=sys.stderr)
         return 1
+    if not image:
+        print("ERROR: empty .text.init image", file=sys.stderr)
+        return 1
+    words = []
+    for offset in range(0, len(image), 8):
+        chunk = image[offset:offset + 8].ljust(8, b"\0")
+        words.append(f"{int.from_bytes(chunk, 'little'):016x}")
+    hex_image.write_text("\n".join(words) + "\n", encoding="ascii", newline="\n")
 
     print(f"PASS: {version}")
     print("PASS: rv32imac_zicsr/ilp32 compile and link")
     print("PASS: ELF32 RISC-V header")
     print("PASS: D0 encoding 0x007302db present")
     print(f"ELF: {elf}")
+    print(f"HEX: {hex_image}")
     print(f"DISASSEMBLY: {disassembly}")
     return 0
 

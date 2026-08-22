@@ -38,8 +38,9 @@ x6 = 11, x7 = 31, expected x5 = 42
 instruction word = 0x007302db
 ```
 
-程序提供 `tohost`：结果正确写入 1，失败写入 3。当前准备门只验证软件产物；
-下一步把该 ELF 装入 Ariane testbench，才能验证真实取指、CV-X-IF、退休和写回。
+程序提供 `tohost`：结果正确写入 1，失败写入 3。准备门之后已增加 Ariane
+程序级 testbench，并完成真实取指、CV-X-IF、退休和写回闭环；详见
+`docs/autoisa_ci_minimal_elf_closure_cn_20260822.md`。
 
 ## 4. 当日结果
 

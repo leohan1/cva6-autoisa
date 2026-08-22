@@ -57,6 +57,8 @@ def main() -> int:
     parser.add_argument("--input", default="core/Flist.cva6")
     parser.add_argument("--output", default="ci/autoisa/build/cv32a65x_xsim.f")
     parser.add_argument("--ariane", action="store_true", help="append ariane AXI package and wrapper")
+    parser.add_argument("--ariane-elf", action="store_true",
+                        help="append ariane AXI package and program-level AutoISA ELF top")
     args = parser.parse_args()
 
     root = args.root.resolve()
@@ -65,11 +67,13 @@ def main() -> int:
     env.update(CVA6_REPO_DIR=str(root), TARGET_CFG=args.target, HPDCACHE_DIR=str(hpdcache))
     lines: list[str] = []
     expand_filelist(normalize(args.input, root), env, lines, set())
-    if args.ariane:
+    if args.ariane or args.ariane_elf:
         lines.extend([
             quote(root / "corev_apu/tb/ariane_axi_pkg.sv"),
             quote(root / "corev_apu/src/ariane.sv"),
-            quote(root / "core/autoisa/tb/tb_autoisa_ci_ariane_smoke.sv"),
+            quote(root / ("core/autoisa/tb/tb_autoisa_ci_ariane_elf.sv"
+                          if args.ariane_elf else
+                          "core/autoisa/tb/tb_autoisa_ci_ariane_smoke.sv")),
         ])
 
     # Preserve first occurrence; duplicated modules otherwise upset Vivado.
