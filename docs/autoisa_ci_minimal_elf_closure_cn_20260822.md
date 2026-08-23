@@ -56,3 +56,6 @@ push 和手动触发时运行，检查名固定为 `AutoISA G3 / Minimal ELF`。
 `autoisa-vivado` 标签的 Windows x64 自托管 runner，并保留 30 天日志和 ELF
 证据。仓库分支规则应将这个固定检查名设为 required，才能在 GitHub 服务端禁止
 绕过失败结果合并。
+
+仓库为 Public，因此工作流不会在自托管授权机器上执行陌生 fork 的代码。外部 PR
+需先由维护者审查并镜像到仓库内分支，再取得 G3 结果。

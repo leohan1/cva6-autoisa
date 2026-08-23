@@ -19,6 +19,12 @@ permissions:
 jobs:
   g3-minimal-elf:
     name: AutoISA G3 / Minimal ELF
+    # Never execute untrusted fork code on the licensed self-hosted machine.
+    # A maintainer must mirror an external contribution to a same-repository
+    # branch before it can receive the G3 result.
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64, autoisa-vivado]
     timeout-minutes: 20
     env:
