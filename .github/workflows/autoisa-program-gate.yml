@@ -28,6 +28,7 @@ jobs:
     runs-on: [self-hosted, Windows, X64, autoisa-vivado]
     timeout-minutes: 20
     env:
+      AUTOISA_PYTHON: ${{ vars.AUTOISA_PYTHON }}
       AUTOISA_VIVADO_BIN: ${{ vars.AUTOISA_VIVADO_BIN }}
       AUTOISA_RISCV_TOOLCHAIN: ${{ vars.AUTOISA_RISCV_TOOLCHAIN }}
 
@@ -37,18 +38,28 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      - name: Validate runner tools
+        shell: pwsh
+        run: |
+          $required = @(
+            $env:AUTOISA_PYTHON,
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xvlog.bat'),
+            (Join-Path $env:AUTOISA_RISCV_TOOLCHAIN 'bin/riscv-none-elf-gcc.exe')
+          )
+          foreach ($path in $required) {
+            if (-not $path -or -not (Test-Path -LiteralPath $path)) {
+              throw "Required G3 runner tool is missing: $path"
+            }
+          }
+          & $env:AUTOISA_PYTHON --version
 
       - name: Validate gate orchestration
         shell: pwsh
-        run: python -m unittest -v tests.autoisa.test_g3_gate
+        run: '& $env:AUTOISA_PYTHON -m unittest -v tests.autoisa.test_g3_gate'
 
       - name: Run blocking G3 gate
         shell: pwsh
-        run: python ci/autoisa/run_g3_gate.py
+        run: '& $env:AUTOISA_PYTHON ci/autoisa/run_g3_gate.py'
 
       - name: Upload G3 evidence
         if: always()

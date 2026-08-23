@@ -125,7 +125,9 @@ failure, returns a non-zero process status, and writes
 required-check name `AutoISA G3 / Minimal ELF` and retains its logs and ELF
 evidence for 30 days. The workflow requires a self-hosted Windows x64 runner
 labelled `autoisa-vivado`; optional repository variables
-`AUTOISA_VIVADO_BIN` and `AUTOISA_RISCV_TOOLCHAIN` override tool locations.
+`AUTOISA_PYTHON`, `AUTOISA_VIVADO_BIN`, and `AUTOISA_RISCV_TOOLCHAIN` select
+the runner's preinstalled tools. The workflow deliberately avoids downloading
+Python into the licensed self-hosted machine during a gate run.
 Because this is a public repository, fork pull requests are not executed on the
 self-hosted licensed machine. A maintainer must first mirror such a change to a
 same-repository branch.
