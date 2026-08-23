@@ -1,0 +1,9 @@
+{
+  "generated_at": "2026-08-23T02:27:55.710345+00:00",
+  "repo": "leohan1/cva6-autoisa",
+  "workflows": [
+    "ci",
+    "tier1",
+    "tier2"
+  ]
+}
