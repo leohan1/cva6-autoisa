@@ -44,3 +44,15 @@ PASS: minimal AutoISA D0 ELF architectural closure
 这是最小程序级正向闭环，不代表全部指令、异常、中断或复杂工作负载覆盖。XSim
 仍报告 HPDCache 断言支持限制以及 `issue_read_operands.sv` 的既有数组边界告警；
 本次运行没有编译、展开或仿真错误。
+
+## G3 提交门禁
+
+程序级闭环现已由 `ci/autoisa/run_g3_gate.py` 固化为阻断式 G3 门禁。门禁依次
+执行 Layout G0、一致的生产源清单检查和最小 ELF 闭环；任一步失败都会停止并
+返回非零状态，同时写出 `ci/autoisa/build/g3_gate_summary.json`。
+
+GitHub 工作流 `.github/workflows/autoisa-program-gate.yml` 在 PR、目标开发分支
+push 和手动触发时运行，检查名固定为 `AutoISA G3 / Minimal ELF`。它使用带
+`autoisa-vivado` 标签的 Windows x64 自托管 runner，并保留 30 天日志和 ELF
+证据。仓库分支规则应将这个固定检查名设为 required，才能在 GitHub 服务端禁止
+绕过失败结果合并。

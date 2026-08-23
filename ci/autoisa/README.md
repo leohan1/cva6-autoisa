@@ -107,6 +107,26 @@ DATA: cycles=94 autoisa_issue=1 commit=1 result=1 last_result=42 tohost=1
 PASS: minimal AutoISA D0 ELF architectural closure
 ```
 
+## Blocking G3 gate
+
+Use the gate entry, rather than calling the smoke directly, for a release or
+pull-request decision:
+
+```bash
+make -C ci/autoisa g3-gate VIVADO=D:/apps/HLS/2025.2/Vivado/bin
+# or
+python ci/autoisa/run_g3_gate.py --vivado D:/apps/HLS/2025.2/Vivado/bin
+```
+
+G3 runs the Layout G0 consistency tests, validates the production source
+manifest, and then executes the minimal ELF closure. It stops at the first
+failure, returns a non-zero process status, and writes
+`ci/autoisa/build/g3_gate_summary.json`. GitHub Actions exposes the stable
+required-check name `AutoISA G3 / Minimal ELF` and retains its logs and ELF
+evidence for 30 days. The workflow requires a self-hosted Windows x64 runner
+labelled `autoisa-vivado`; optional repository variables
+`AUTOISA_VIVADO_BIN` and `AUTOISA_RISCV_TOOLCHAIN` override tool locations.
+
 Or from CMD:
 
 ```cmd
