@@ -39,7 +39,7 @@ jobs:
           submodules: recursive
 
       - name: Validate runner tools
-        shell: pwsh
+        shell: powershell
         run: |
           $required = @(
             $env:AUTOISA_PYTHON,
@@ -54,11 +54,11 @@ jobs:
           & $env:AUTOISA_PYTHON --version
 
       - name: Validate gate orchestration
-        shell: pwsh
+        shell: powershell
         run: '& $env:AUTOISA_PYTHON -m unittest -v tests.autoisa.test_g3_gate'
 
       - name: Run blocking G3 gate
-        shell: pwsh
+        shell: powershell
         run: '& $env:AUTOISA_PYTHON ci/autoisa/run_g3_gate.py'
 
       - name: Upload G3 evidence
