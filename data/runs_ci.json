@@ -1,5 +1,26 @@
 [
   {
+    "id": 32612969838,
+    "source": "github-actions",
+    "simulator": "verilator",
+    "run_number": 2,
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/32612969838",
+    "head_branch": "autoisa-rtl-capability-v1",
+    "head_sha": "ccbd42ca",
+    "event": "push",
+    "created_at": "2026-08-23T02:29:10Z",
+    "updated_at": "2026-08-23T02:31:08Z",
+    "run_started_at": "2026-08-23T02:29:10Z",
+    "duration_seconds": 118,
+    "total_jobs": 0,
+    "passed_jobs": 0,
+    "failed_jobs": 0,
+    "skipped_jobs": 0,
+    "jobs": []
+  },
+  {
     "id": 32612821724,
     "source": "github-actions",
     "simulator": "verilator",
