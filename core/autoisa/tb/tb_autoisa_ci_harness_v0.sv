@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_harness_v0;
   import autoisa_ci_types_pkg::*;
@@ -27,23 +27,34 @@ module tb_autoisa_ci_harness_v0;
   logic killed, busy;
 
   autoisa_ci_harness_v0 dut (
-      .clk_i(clk), .rst_ni(rst_n),
-      .issue_valid_i(issue_valid), .issue_ready_o(issue_ready),
-      .issue_instr_i(issue_instr), .issue_tag_i(issue_tag),
-      .issue_epoch_i(issue_epoch), .issue_operands_i(issue_operands),
-      .issue_accept_o(issue_accept), .issue_reject_o(issue_reject),
-      .issue_reject_status_o(issue_reject_status), .issue_desc_o(issue_desc),
-      .commit_valid_i(commit_valid), .commit_tag_i(commit_tag),
-      .commit_epoch_i(commit_epoch), .kill_valid_i(kill_valid),
-      .kill_tag_i(kill_tag), .kill_epoch_i(kill_epoch),
-      .result_valid_o(result_valid), .result_ready_i(result_ready),
-      .result_o(result_value), .killed_o(killed), .busy_o(busy)
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .issue_valid_i(issue_valid),
+      .issue_ready_o(issue_ready),
+      .issue_instr_i(issue_instr),
+      .issue_tag_i(issue_tag),
+      .issue_epoch_i(issue_epoch),
+      .issue_operands_i(issue_operands),
+      .issue_accept_o(issue_accept),
+      .issue_reject_o(issue_reject),
+      .issue_reject_status_o(issue_reject_status),
+      .issue_desc_o(issue_desc),
+      .commit_valid_i(commit_valid),
+      .commit_tag_i(commit_tag),
+      .commit_epoch_i(commit_epoch),
+      .kill_valid_i(kill_valid),
+      .kill_tag_i(kill_tag),
+      .kill_epoch_i(kill_epoch),
+      .result_valid_o(result_valid),
+      .result_ready_i(result_ready),
+      .result_o(result_value),
+      .killed_o(killed),
+      .busy_o(busy)
   );
 
-  function automatic logic [31:0] enc_r(
-      input logic [6:0] ci_id, input logic [2:0] layout,
-      input logic [4:0] rd, input logic [4:0] rs1, input logic [4:0] rs2
-  );
+  function automatic logic [31:0] enc_r(input logic [6:0] ci_id, input logic [2:0] layout,
+                                        input logic [4:0] rd, input logic [4:0] rs1,
+                                        input logic [4:0] rs2);
     enc_r = {ci_id, rs2, rs1, layout, rd, 7'h5b};
   endfunction
 
@@ -88,7 +99,7 @@ module tb_autoisa_ci_harness_v0;
     begin
       while (!issue_ready) @(negedge clk);
       issue_instr = instruction;
-      issue_tag = tag;
+      issue_tag   = tag;
       issue_epoch = 2'd0;
       issue_valid = 1'b1;
       #1;
@@ -101,7 +112,7 @@ module tb_autoisa_ci_harness_v0;
 
   task automatic commit_current(input logic [3:0] tag);
     begin
-      commit_tag = tag;
+      commit_tag   = tag;
       commit_epoch = 2'd0;
       commit_valid = 1'b1;
       @(posedge clk);
@@ -110,29 +121,24 @@ module tb_autoisa_ci_harness_v0;
     end
   endtask
 
-  task automatic expect_result(
-      input logic [1:0] mask, input logic [31:0] expected0,
-      input logic [31:0] expected1
-  );
+  task automatic expect_result(input logic [1:0] mask, input logic [31:0] expected0,
+                               input logic [31:0] expected1);
     begin
       wait (result_valid);
       if ((result_value.result_valid != mask) ||
           (result_value.results[0] != expected0) ||
           (mask[1] && (result_value.results[1] != expected1))) begin
-        $fatal(1, "result mismatch: mask=%b r0=%08x r1=%08x",
-               result_value.result_valid, result_value.results[0],
-               result_value.results[1]);
+        $fatal(1, "result mismatch: mask=%b r0=%08x r1=%08x", result_value.result_valid,
+               result_value.results[0], result_value.results[1]);
       end
       @(posedge clk);
       @(negedge clk);
     end
   endtask
 
-  task automatic run_ci(
-      input logic [31:0] instruction, input logic [3:0] tag,
-      input logic [1:0] mask, input logic [31:0] expected0,
-      input logic [31:0] expected1
-  );
+  task automatic run_ci(input logic [31:0] instruction, input logic [3:0] tag,
+                        input logic [1:0] mask, input logic [31:0] expected0,
+                        input logic [31:0] expected1);
     begin
       issue_current(instruction, tag);
       commit_current(tag);
@@ -191,7 +197,7 @@ module tb_autoisa_ci_harness_v0;
 
     // Pair rd0 must be nonzero, even and not x31.
     issue_instr = enc_r(7'd3, 3'd3, 5'd5, 5'd1, 5'd2);
-    issue_tag = 4'd9;
+    issue_tag   = 4'd9;
     issue_valid = 1'b1;
     #1;
     if (!issue_reject || issue_reject_status != AUTOISA_STATUS_ILLEGAL)
@@ -202,7 +208,7 @@ module tb_autoisa_ci_harness_v0;
 
     // A recognized layout with an unimplemented semantic is explicit UNSUPPORTED.
     issue_instr = enc_r(7'd9, 3'd0, 5'd5, 5'd1, 5'd2);
-    issue_tag = 4'd9;
+    issue_tag   = 4'd9;
     issue_valid = 1'b1;
     #1;
     if (!issue_reject || issue_reject_status != AUTOISA_STATUS_UNSUPPORTED)
@@ -230,7 +236,7 @@ module tb_autoisa_ci_harness_v0;
     // Kill an accepted D3 before completion and prove no writeback occurs.
     issue_operands = '{32'd0, 32'd0, 32'd0, 32'd0, 32'd4, 32'd15};
     issue_current(enc_r(7'd3, 3'd3, 5'd6, 5'd1, 5'd2), 4'd11);
-    kill_tag = 4'd11;
+    kill_tag   = 4'd11;
     kill_epoch = 2'd0;
     kill_valid = 1'b1;
     @(posedge clk);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Fixed-seed, bit-exact randomized regression for the concurrent CI shell.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_random_100k #(
     parameter bit MULTI_ENGINE = 1'b0
@@ -22,7 +22,7 @@ module tb_autoisa_ci_random_100k #(
   logic [AUTOISA_TAG_WIDTH-1:0] commit_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] commit_epoch;
   logic kill_valid, kill_hit;
-  logic [AUTOISA_TAG_WIDTH-1:0] kill_tag;
+  logic [  AUTOISA_TAG_WIDTH-1:0] kill_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] kill_epoch;
   logic result_valid, result_ready;
   autoisa_ci_rsp_t result;
@@ -42,13 +42,13 @@ module tb_autoisa_ci_random_100k #(
   logic [31:0] result_flush_drop_count;
   logic [31:0] skid_killed_drop_count, skid_flush_drop_count;
 
-  logic live [0:15];
-  logic committed [0:15];
-  autoisa_ci_rsp_t expected [0:15];
-  autoisa_ci_req_t expected_req [0:15];
+  logic live[0:15];
+  logic committed[0:15];
+  autoisa_ci_rsp_t expected[0:15];
+  autoisa_ci_req_t expected_req[0:15];
   autoisa_ci_rsp_t engine_expected;
   logic engine_tracking;
-  integer ci_hits [0:11];
+  integer ci_hits[0:11];
   integer model_accepted, model_retired, model_killed, model_flushes;
   integer observed_request_hwm, observed_inflight_hwm;
   integer observed_result_hwm, observed_credit_hwm;
@@ -79,11 +79,11 @@ module tb_autoisa_ci_random_100k #(
       case (item.ci_id)
         8'd0: begin
           answer.result_valid = 2'b01;
-          answer.results[0] = item.operands[0] + item.operands[1];
+          answer.results[0]   = item.operands[0] + item.operands[1];
         end
         8'd1: begin
           answer.result_valid = 2'b01;
-          answer.results[0] = (item.operands[0] * item.operands[1]) + item.operands[2];
+          answer.results[0]   = (item.operands[0] * item.operands[1]) + item.operands[2];
         end
         8'd2: begin
           answer.result_valid = 2'b01;
@@ -92,8 +92,8 @@ module tb_autoisa_ci_random_100k #(
         end
         8'd3: begin
           answer.result_valid = 2'b11;
-          answer.results[0] = item.operands[0] + item.operands[1];
-          answer.results[1] = item.operands[0] - item.operands[1];
+          answer.results[0]   = item.operands[0] + item.operands[1];
+          answer.results[1]   = item.operands[0] - item.operands[1];
         end
         8'd4: begin
           answer.result_valid = 2'b11;
@@ -119,16 +119,15 @@ module tb_autoisa_ci_random_100k #(
         8'd7: begin
           shamt = item.immediate[4:0];
           answer.result_valid = 2'b01;
-          answer.results[0] = (item.operands[0] << shamt) ^
-                              (item.operands[1] + item.immediate);
+          answer.results[0] = (item.operands[0] << shamt) ^ (item.operands[1] + item.immediate);
         end
         8'd8, 8'd10: begin
           answer.result_valid = 2'b01;
-          answer.results[0] = item.operands[0] + item.operands[1];
+          answer.results[0]   = item.operands[0] + item.operands[1];
         end
         8'd9: begin
           answer.result_valid = 2'b01;
-          answer.results[0] = item.operands[0] ^ item.operands[1];
+          answer.results[0]   = item.operands[0] ^ item.operands[1];
         end
         8'd11: begin
           answer.result_valid = 2'b00;
@@ -145,8 +144,7 @@ module tb_autoisa_ci_random_100k #(
     integer j;
     begin
       n = 0;
-      for (j = 0; j < 16; j = j + 1)
-        if (live[j]) n = n + 1;
+      for (j = 0; j < 16; j = j + 1) if (live[j]) n = n + 1;
       live_count = n;
     end
   endfunction
@@ -156,26 +154,34 @@ module tb_autoisa_ci_random_100k #(
     integer j;
     begin
       n = 0;
-      for (j = 0; j < 16; j = j + 1)
-        if (live[j] && committed[j]) n = n + 1;
+      for (j = 0; j < 16; j = j + 1) if (live[j] && committed[j]) n = n + 1;
       committed_count = n;
     end
   endfunction
 
   autoisa_ci_concurrent_shell #(
-      .REQUEST_DEPTH(REQUEST_DEPTH),
+      .REQUEST_DEPTH (REQUEST_DEPTH),
       .INFLIGHT_DEPTH(INFLIGHT_DEPTH),
-      .RESULT_DEPTH(RESULT_DEPTH),
-      .MULTI_ENGINE(MULTI_ENGINE)
+      .RESULT_DEPTH  (RESULT_DEPTH),
+      .MULTI_ENGINE  (MULTI_ENGINE)
   ) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .req_valid_i(req_valid), .req_ready_o(req_ready), .req_i(req),
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .req_valid_i(req_valid),
+      .req_ready_o(req_ready),
+      .req_i(req),
       .req_duplicate_o(req_duplicate),
-      .commit_valid_i(commit_valid), .commit_tag_i(commit_tag),
+      .commit_valid_i(commit_valid),
+      .commit_tag_i(commit_tag),
       .commit_epoch_i(commit_epoch),
-      .kill_valid_i(kill_valid), .kill_tag_i(kill_tag),
-      .kill_epoch_i(kill_epoch), .kill_hit_o(kill_hit),
-      .result_valid_o(result_valid), .result_ready_i(result_ready), .result_o(result),
+      .kill_valid_i(kill_valid),
+      .kill_tag_i(kill_tag),
+      .kill_epoch_i(kill_epoch),
+      .kill_hit_o(kill_hit),
+      .result_valid_o(result_valid),
+      .result_ready_i(result_ready),
+      .result_o(result),
       .request_occupancy_o(request_occupancy),
       .request_high_watermark_o(request_high_watermark),
       .inflight_occupancy_o(inflight_occupancy),
@@ -186,9 +192,12 @@ module tb_autoisa_ci_random_100k #(
       .credit_high_watermark_o(credit_high_watermark),
       .engine_skid_occupancy_o(engine_skid_occupancy),
       .engine_skid_high_watermark_o(engine_skid_high_watermark),
-      .accepted_count_o(accepted_count), .dispatched_count_o(dispatched_count),
-      .engine_started_count_o(engine_started_count), .completion_count_o(completion_count),
-      .retired_count_o(retired_count), .killed_count_o(killed_count),
+      .accepted_count_o(accepted_count),
+      .dispatched_count_o(dispatched_count),
+      .engine_started_count_o(engine_started_count),
+      .completion_count_o(completion_count),
+      .retired_count_o(retired_count),
+      .killed_count_o(killed_count),
       .orphan_completion_count_o(orphan_completion_count),
       .tombstone_drop_count_o(tombstone_drop_count),
       .credit_stall_count_o(credit_stall_count),
@@ -223,10 +232,8 @@ module tb_autoisa_ci_random_100k #(
         observed_request_hwm = request_high_watermark;
       if (inflight_high_watermark > observed_inflight_hwm)
         observed_inflight_hwm = inflight_high_watermark;
-      if (result_high_watermark > observed_result_hwm)
-        observed_result_hwm = result_high_watermark;
-      if (credit_high_watermark > observed_credit_hwm)
-        observed_credit_hwm = credit_high_watermark;
+      if (result_high_watermark > observed_result_hwm) observed_result_hwm = result_high_watermark;
+      if (credit_high_watermark > observed_credit_hwm) observed_credit_hwm = credit_high_watermark;
 
       if (flush) begin
         model_flushes = model_flushes + 1;
@@ -262,29 +269,46 @@ module tb_autoisa_ci_random_100k #(
           if (!live[result.tag] || !committed[result.tag])
             $fatal(1, "unexpected result tag=%0d epoch=%0d", result.tag, result.epoch);
           if (result !== expected[result.tag])
-            $fatal(1, "bit-exact mismatch tag=%0d ci=D%0d op0=%h op1=%h op2=%h op3=%h imm=%h got=%h expected=%h",
-                   result.tag, expected_req[result.tag].ci_id,
-                   expected_req[result.tag].operands[0], expected_req[result.tag].operands[1],
-                   expected_req[result.tag].operands[2], expected_req[result.tag].operands[3],
-                   expected_req[result.tag].immediate, result, expected[result.tag]);
+            $fatal(
+                1,
+                "bit-exact mismatch tag=%0d ci=D%0d op0=%h op1=%h op2=%h op3=%h imm=%h got=%h expected=%h",
+                result.tag,
+                expected_req[result.tag].ci_id,
+                expected_req[result.tag].operands[0],
+                expected_req[result.tag].operands[1],
+                expected_req[result.tag].operands[2],
+                expected_req[result.tag].operands[3],
+                expected_req[result.tag].immediate,
+                result,
+                expected[result.tag]
+            );
           live[result.tag] = 1'b0;
           committed[result.tag] = 1'b0;
           model_retired = model_retired + 1;
         end
         if (!MULTI_ENGINE && dut.engine_req_valid && dut.engine_req_ready) begin
-          if (!live[dut.engine_req.tag] ||
-              (dut.engine_req !== expected_req[dut.engine_req.tag]))
-            $fatal(1, "engine request corruption tag=%0d got_ci=D%0d expected_ci=D%0d got_imm=%h expected_imm=%h",
-                   dut.engine_req.tag, dut.engine_req.ci_id,
-                   expected_req[dut.engine_req.tag].ci_id, dut.engine_req.immediate,
-                   expected_req[dut.engine_req.tag].immediate);
+          if (!live[dut.engine_req.tag] || (dut.engine_req !== expected_req[dut.engine_req.tag]))
+            $fatal(
+                1,
+                "engine request corruption tag=%0d got_ci=D%0d expected_ci=D%0d got_imm=%h expected_imm=%h",
+                dut.engine_req.tag,
+                dut.engine_req.ci_id,
+                expected_req[dut.engine_req.tag].ci_id,
+                dut.engine_req.immediate,
+                expected_req[dut.engine_req.tag].immediate
+            );
           engine_expected = reference_execute(dut.engine_req);
           engine_tracking = 1'b1;
         end
         if (!MULTI_ENGINE && dut.engine_rsp_valid && dut.engine_rsp_ready) begin
           if (!engine_tracking || (dut.engine_rsp !== engine_expected))
-            $fatal(1, "engine response mismatch got=%h expected=%h tracking=%0b",
-                   dut.engine_rsp, engine_expected, engine_tracking);
+            $fatal(
+                1,
+                "engine response mismatch got=%h expected=%h tracking=%0b",
+                dut.engine_rsp,
+                engine_expected,
+                engine_tracking
+            );
           engine_tracking = 1'b0;
         end
       end
@@ -296,7 +320,7 @@ module tb_autoisa_ci_random_100k #(
     logic [AUTOISA_EPOCH_WIDTH-1:0] current_epoch;
     integer cycle_number, j, selected_tag, start_tag, drain_cycles;
     integer json_file;
-    logic pending_flush;
+    logic   pending_flush;
 
     flush = 1'b0;
     req_valid = 1'b0;
@@ -316,15 +340,13 @@ module tb_autoisa_ci_random_100k #(
     @(negedge clk);
     rst_n = 1'b1;
 
-    for (cycle_number = 0; cycle_number < STIMULUS_CYCLES;
-         cycle_number = cycle_number + 1) begin
+    for (cycle_number = 0; cycle_number < STIMULUS_CYCLES; cycle_number = cycle_number + 1) begin
       @(negedge clk);
       flush = 1'b0;
       commit_valid = 1'b0;
       kill_valid = 1'b0;
 
-      if ((cycle_number != 0) && ((cycle_number % 20000) == 0))
-        pending_flush = 1'b1;
+      if ((cycle_number != 0) && ((cycle_number % 20000) == 0)) pending_flush = 1'b1;
 
       random_state = prng_next(random_state);
       // Random backpressure plus a deterministic 16-cycle stall window.
@@ -347,8 +369,7 @@ module tb_autoisa_ci_random_100k #(
             selected_tag = -1;
             start_tag = random_state[7:4];
             for (j = 0; j < 16; j = j + 1)
-              if ((selected_tag < 0) && !live[(start_tag+j) & 15])
-                selected_tag = (start_tag+j) & 15;
+            if ((selected_tag < 0) && !live[(start_tag+j)&15]) selected_tag = (start_tag + j) & 15;
             if (selected_tag >= 0) begin
               req = '0;
               req.tag = selected_tag[AUTOISA_TAG_WIDTH-1:0];
@@ -370,22 +391,20 @@ module tb_autoisa_ci_random_100k #(
 
         // Choose at most one terminal-control action each cycle.
         random_state = prng_next(random_state);
-        if ((live_count() >= INFLIGHT_DEPTH) ||
-            (random_state[3:0] < 4'd2)) begin
+        if ((live_count() >= INFLIGHT_DEPTH) || (random_state[3:0] < 4'd2)) begin
           selected_tag = -1;
           start_tag = random_state[7:4];
           for (j = 0; j < 16; j = j + 1)
-            if ((selected_tag < 0) && live[(start_tag+j) & 15] &&
-                !committed[(start_tag+j) & 15])
-              selected_tag = (start_tag+j) & 15;
+          if ((selected_tag < 0) && live[(start_tag+j)&15] && !committed[(start_tag+j)&15])
+            selected_tag = (start_tag + j) & 15;
           if (selected_tag >= 0) begin
             if (random_state[8]) begin
               commit_valid = 1'b1;
-              commit_tag = selected_tag[AUTOISA_TAG_WIDTH-1:0];
+              commit_tag   = selected_tag[AUTOISA_TAG_WIDTH-1:0];
               commit_epoch = current_epoch;
             end else begin
               kill_valid = 1'b1;
-              kill_tag = selected_tag[AUTOISA_TAG_WIDTH-1:0];
+              kill_tag   = selected_tag[AUTOISA_TAG_WIDTH-1:0];
               kill_epoch = current_epoch;
             end
           end
@@ -408,10 +427,10 @@ module tb_autoisa_ci_random_100k #(
       commit_valid = 1'b0;
       selected_tag = -1;
       for (j = 0; j < 16; j = j + 1)
-        if ((selected_tag < 0) && live[j] && !committed[j]) selected_tag = j;
+      if ((selected_tag < 0) && live[j] && !committed[j]) selected_tag = j;
       if (selected_tag >= 0) begin
         commit_valid = 1'b1;
-        commit_tag = selected_tag[AUTOISA_TAG_WIDTH-1:0];
+        commit_tag   = selected_tag[AUTOISA_TAG_WIDTH-1:0];
         commit_epoch = current_epoch;
       end
       @(posedge clk);
@@ -420,10 +439,18 @@ module tb_autoisa_ci_random_100k #(
     end
     commit_valid = 1'b0;
     if (drain_cycles >= 10000)
-      $fatal(1, "random regression drain timeout live=%0d committed=%0d req_occ=%0d inf_occ=%0d res_occ=%0d skid=%0b credits=%0d engine_tracking=%0b",
-             live_count(), committed_count(), request_occupancy,
-             inflight_occupancy, result_occupancy, engine_skid_occupancy,
-             reserved_result_credits, engine_tracking);
+      $fatal(
+          1,
+          "random regression drain timeout live=%0d committed=%0d req_occ=%0d inf_occ=%0d res_occ=%0d skid=%0b credits=%0d engine_tracking=%0b",
+          live_count(),
+          committed_count(),
+          request_occupancy,
+          inflight_occupancy,
+          result_occupancy,
+          engine_skid_occupancy,
+          reserved_result_credits,
+          engine_tracking
+      );
 
     // Let any killed long-latency engine operation report its orphan response.
     repeat (32) @(posedge clk);
@@ -436,20 +463,22 @@ module tb_autoisa_ci_random_100k #(
     if (killed_count != model_killed)
       $fatal(1, "killed counter mismatch dut=%0d model=%0d", killed_count, model_killed);
     if (model_accepted != (model_retired + model_killed))
-      $fatal(1, "accounting mismatch accepted=%0d retired=%0d killed=%0d",
-             model_accepted, model_retired, model_killed);
+      $fatal(
+          1,
+          "accounting mismatch accepted=%0d retired=%0d killed=%0d",
+          model_accepted,
+          model_retired,
+          model_killed
+      );
     if (model_flushes != 4) $fatal(1, "expected four safe flushes, got %0d", model_flushes);
     if ((!MULTI_ENGINE && (observed_result_hwm != RESULT_DEPTH)) ||
         (MULTI_ENGINE && (observed_result_hwm < 2)))
-      $fatal(1, "random backpressure did not fill result queue: hwm=%0d",
-             observed_result_hwm);
+      $fatal(1, "random backpressure did not fill result queue: hwm=%0d", observed_result_hwm);
     for (j = 0; j < 12; j = j + 1)
-      if (ci_hits[j] == 0) $fatal(1, "D%0d received no accepted request", j);
+    if (ci_hits[j] == 0) $fatal(1, "D%0d received no accepted request", j);
 
-    if (MULTI_ENGINE)
-      json_file = $fopen("ci/autoisa/logs/autoisa_ci_random_100k_multi.json", "w");
-    else
-      json_file = $fopen("ci/autoisa/logs/autoisa_ci_random_100k.json", "w");
+    if (MULTI_ENGINE) json_file = $fopen("ci/autoisa/logs/autoisa_ci_random_100k_multi.json", "w");
+    else json_file = $fopen("ci/autoisa/logs/autoisa_ci_random_100k.json", "w");
     if (json_file == 0) $fatal(1, "could not create random regression JSON");
     $fdisplay(json_file, "{");
     $fdisplay(json_file, "  \"seed\": \"0x%08x\",", RANDOM_SEED);
@@ -468,16 +497,16 @@ module tb_autoisa_ci_random_100k #(
     $fdisplay(json_file, "}");
     $fclose(json_file);
 
-    $display("DATA: seed=0x%08x cycles=%0d accepted=%0d retired=%0d killed=%0d flushes=%0d orphan=%0d req_hwm=%0d inf_hwm=%0d res_hwm=%0d credit_hwm=%0d credit_stall=%0d",
-             RANDOM_SEED, STIMULUS_CYCLES, model_accepted, model_retired,
-             model_killed, model_flushes, orphan_completion_count,
-             observed_request_hwm, observed_inflight_hwm, observed_result_hwm,
-             observed_credit_hwm, credit_stall_count);
+    $display(
+        "DATA: seed=0x%08x cycles=%0d accepted=%0d retired=%0d killed=%0d flushes=%0d orphan=%0d req_hwm=%0d inf_hwm=%0d res_hwm=%0d credit_hwm=%0d credit_stall=%0d",
+        RANDOM_SEED, STIMULUS_CYCLES, model_accepted, model_retired, model_killed, model_flushes,
+        orphan_completion_count, observed_request_hwm, observed_inflight_hwm, observed_result_hwm,
+        observed_credit_hwm, credit_stall_count);
     $display("PASS: autoisa_ci_random_100k");
     $finish;
   end
 endmodule
 
 module tb_autoisa_ci_random_100k_multi;
-  tb_autoisa_ci_random_100k #(.MULTI_ENGINE(1'b1)) i_multi_random();
+  tb_autoisa_ci_random_100k #(.MULTI_ENGINE(1'b1)) i_multi_random ();
 endmodule

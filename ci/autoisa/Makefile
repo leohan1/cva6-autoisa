@@ -22,7 +22,7 @@
 #    make ci-transport - run the end-to-end CVA6 Host transport test
 #    make ci-cvxif    - run the real CV-X-IF scalar bridge test
 #    make toolchain-smoke - build and inspect the minimal RV32 AutoISA D0 ELF
-#    make elf-smoke   - execute the minimal D0 ELF on Ariane and check retirement
+#    make elf-smoke   - execute the expanded program ELF on Ariane
 #    make g3-gate     - run the blocking program-level integration gate
 #    make clean       - remove xsim work dirs and CI logs
 #    make vars        - print resolved variables (for debugging)
@@ -97,7 +97,7 @@ ci-cvxif:  ## run the native scalar CV-X-IF bridge test
 toolchain-smoke:  ## build and inspect the minimal RV32 AutoISA D0 ELF
 	"$(PYTHON)" "$(CURDIR)/check_riscv_toolchain.py"
 
-elf-smoke:  ## execute the minimal D0 ELF on Ariane and check architectural closure
+elf-smoke:  ## execute the expanded AutoISA program ELF on Ariane
 	"$(PYTHON)" "$(CURDIR)/run_autoisa_elf_smoke.py" --vivado "$(VIVADO)"
 
 g3-gate:  ## run G0 consistency, source manifest, and the minimal ELF closure
@@ -135,7 +135,7 @@ help:  ## show this help
 	@echo   make ci-transport run the end-to-end CVA6 Host transport test
 	@echo   make ci-cvxif run the native scalar CV-X-IF bridge test
 	@echo   make toolchain-smoke build and inspect the minimal RV32 AutoISA D0 ELF
-	@echo   make elf-smoke execute the D0 ELF on Ariane and check result/writeback/tohost
+	@echo   make elf-smoke execute the expanded ELF and check signature/protocol/writeback
 	@echo   make g3-gate run the blocking AutoISA G3 program-level gate
 	@echo   make check-q audit Q00-Q15 against current passing logs
 	@echo   make clean    remove xsim work dirs and CI logs

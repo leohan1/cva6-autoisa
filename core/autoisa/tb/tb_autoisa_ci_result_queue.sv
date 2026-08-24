@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_result_queue;
   import autoisa_ci_types_pkg::*;
@@ -20,44 +20,86 @@ module tb_autoisa_ci_result_queue;
 
   always #5 clk = ~clk;
 
-  autoisa_ci_result_queue #(.DEPTH(DEPTH)) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(in_valid), .in_ready_o(in_ready), .in_rsp_i(in_rsp),
-      .out_valid_o(out_valid), .out_ready_i(out_ready), .out_rsp_o(out_rsp),
-      .occupancy_o(occupancy), .high_watermark_o(high_watermark),
-      .enqueue_count_o(enqueue_count), .dequeue_count_o(dequeue_count),
+  autoisa_ci_result_queue #(
+      .DEPTH(DEPTH)
+  ) dut (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(in_valid),
+      .in_ready_o(in_ready),
+      .in_rsp_i(in_rsp),
+      .out_valid_o(out_valid),
+      .out_ready_i(out_ready),
+      .out_rsp_o(out_rsp),
+      .occupancy_o(occupancy),
+      .high_watermark_o(high_watermark),
+      .enqueue_count_o(enqueue_count),
+      .dequeue_count_o(dequeue_count),
       .full_stall_count_o(full_stall_count),
       .flush_drop_count_o(flush_drop_count)
   );
 
-  autoisa_ci_result_queue #(.DEPTH(1)) i_depth_1 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(1'b0), .in_ready_o(), .in_rsp_i('0),
-      .out_valid_o(), .out_ready_i(1'b0), .out_rsp_o(),
-      .occupancy_o(), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o(), .flush_drop_count_o()
+  autoisa_ci_result_queue #(
+      .DEPTH(1)
+  ) i_depth_1 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(1'b0),
+      .in_ready_o(),
+      .in_rsp_i('0),
+      .out_valid_o(),
+      .out_ready_i(1'b0),
+      .out_rsp_o(),
+      .occupancy_o(),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o(),
+      .flush_drop_count_o()
   );
-  autoisa_ci_result_queue #(.DEPTH(2)) i_depth_2 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(1'b0), .in_ready_o(), .in_rsp_i('0),
-      .out_valid_o(), .out_ready_i(1'b0), .out_rsp_o(),
-      .occupancy_o(), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o(), .flush_drop_count_o()
+  autoisa_ci_result_queue #(
+      .DEPTH(2)
+  ) i_depth_2 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(1'b0),
+      .in_ready_o(),
+      .in_rsp_i('0),
+      .out_valid_o(),
+      .out_ready_i(1'b0),
+      .out_rsp_o(),
+      .occupancy_o(),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o(),
+      .flush_drop_count_o()
   );
-  autoisa_ci_result_queue #(.DEPTH(8)) i_depth_8 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(1'b0), .in_ready_o(), .in_rsp_i('0),
-      .out_valid_o(), .out_ready_i(1'b0), .out_rsp_o(),
-      .occupancy_o(), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o(), .flush_drop_count_o()
+  autoisa_ci_result_queue #(
+      .DEPTH(8)
+  ) i_depth_8 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(1'b0),
+      .in_ready_o(),
+      .in_rsp_i('0),
+      .out_valid_o(),
+      .out_ready_i(1'b0),
+      .out_rsp_o(),
+      .occupancy_o(),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o(),
+      .flush_drop_count_o()
   );
 
-  task automatic push(
-      input logic [3:0] tag,
-      input logic [1:0] mask,
-      input logic [31:0] value0,
-      input logic [31:0] value1
-  );
+  task automatic push(input logic [3:0] tag, input logic [1:0] mask, input logic [31:0] value0,
+                      input logic [31:0] value1);
     begin
       @(negedge clk);
       in_rsp = '0;
@@ -75,12 +117,8 @@ module tb_autoisa_ci_result_queue;
     end
   endtask
 
-  task automatic pop_expect(
-      input logic [3:0] tag,
-      input logic [1:0] mask,
-      input logic [31:0] value0,
-      input logic [31:0] value1
-  );
+  task automatic pop_expect(input logic [3:0] tag, input logic [1:0] mask,
+                            input logic [31:0] value0, input logic [31:0] value1);
     begin
       @(negedge clk);
       out_ready = 1'b1;
@@ -135,7 +173,7 @@ module tb_autoisa_ci_result_queue;
       $fatal(1, "result full replacement failed");
     @(posedge clk);
     @(negedge clk);
-    in_valid = 1'b0;
+    in_valid  = 1'b0;
     out_ready = 1'b0;
 
     pop_expect(4'd2, 2'b11, 32'h22, 32'h2a);
@@ -152,11 +190,10 @@ module tb_autoisa_ci_result_queue;
     in_valid = 1'b1;
     out_ready = 1'b1;
     #1;
-    if (!out_valid || !in_ready || (out_rsp.tag != 4'd6))
-      $fatal(1, "result empty bypass failed");
+    if (!out_valid || !in_ready || (out_rsp.tag != 4'd6)) $fatal(1, "result empty bypass failed");
     @(posedge clk);
     @(negedge clk);
-    in_valid = 1'b0;
+    in_valid  = 1'b0;
     out_ready = 1'b0;
     if (occupancy != 0) $fatal(1, "result bypass changed occupancy");
 
@@ -168,12 +205,11 @@ module tb_autoisa_ci_result_queue;
     @(posedge clk);
     @(negedge clk);
     flush = 1'b0;
-    if ((occupancy != 0) || (high_watermark != 0) || out_valid ||
-        (flush_drop_count != 2))
+    if ((occupancy != 0) || (high_watermark != 0) || out_valid || (flush_drop_count != 2))
       $fatal(1, "result flush failed");
 
-    $display("DATA: enqueued=%0d dequeued=%0d full_stall=%0d flush_drop=%0d",
-             enqueue_count, dequeue_count, full_stall_count, flush_drop_count);
+    $display("DATA: enqueued=%0d dequeued=%0d full_stall=%0d flush_drop=%0d", enqueue_count,
+             dequeue_count, full_stall_count, flush_drop_count);
     $display("PASS: autoisa_ci_result_queue");
     $finish;
   end

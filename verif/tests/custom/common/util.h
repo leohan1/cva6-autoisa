@@ -6,6 +6,7 @@
 extern void setStats(int enable);
 
 #include <stdint.h>
+#include "hart_local.h"
 
 #define static_assert(cond) switch(0) { case 0: case !!(long)(cond): ; }
 
@@ -46,17 +47,17 @@ static void __attribute__((noinline)) barrier(int ncores)
 #ifdef __riscv_atomic // __sync_* builtins require A extension
   static volatile int sense;
   static volatile int count;
-  static __thread int threadsense;
+  int *threadsense = &hart_local()->barrier_threadsense;
 
   __sync_synchronize();
 
-  threadsense = !threadsense;
+  *threadsense = !*threadsense;
   if (__sync_fetch_and_add(&count, 1) == ncores-1)
   {
     count = 0;
-    sense = threadsense;
+    sense = *threadsense;
   }
-  else while(sense != threadsense)
+  else while(sense != *threadsense)
     ;
 
   __sync_synchronize();

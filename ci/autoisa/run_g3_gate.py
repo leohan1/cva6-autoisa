@@ -41,7 +41,7 @@ def gate_steps(python: str, vivado: Path, toolchain: Path | None) -> list[GateSt
             "source-manifest",
             [python, str(ROOT / "ci/autoisa/check_source_manifest.py")],
         ),
-        GateStep("minimal-elf", elf_command),
+        GateStep("program-coverage-elf", elf_command),
     ]
 
 
@@ -74,7 +74,7 @@ def execute_gate(steps: list[GateStep], summary_path: Path) -> int:
     summary = {
         "schema_version": 1,
         "gate": "G3",
-        "name": "AutoISA minimal ELF program gate",
+        "name": "AutoISA expanded ELF program gate",
         "status": "PASS" if passed else "FAIL",
         "started_utc": started,
         "duration_seconds": round(time.monotonic() - start_time, 3),

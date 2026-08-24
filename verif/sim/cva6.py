@@ -977,17 +977,27 @@ def incorrect_version_exit(tool, tool_version, required_version):
   sys.exit(RET_FAIL)
 
 
+def parse_gcc_version(version_output):
+  first_line = version_output.splitlines()[0] if version_output.splitlines() else ""
+  version_match = re.search(r"(?<!\d)(\d+)(?:\.\d+){1,2}(?!\d)", first_line)
+  if not version_match:
+    raise ValueError(f"Unable to parse GCC version from: {first_line}")
+  return version_match.group(0), int(version_match.group(1))
+
+
 def check_cc_version():
   REQUIRED_GCC_VERSION = 11
 
   cc_path = get_env_var("RISCV_CC")
   cc_version = run_cmd(f"{cc_path} --version")
-  cc_version_string = cc_version.split("\n")[0].split(" ")[2]
-  cc_version_number = re.split(r'\D+', cc_version_string)
+  try:
+    cc_version_string, cc_major_version = parse_gcc_version(cc_version)
+  except ValueError as error:
+    incorrect_version_exit("GCC", str(error), f">={REQUIRED_GCC_VERSION}")
 
   logging.info(f"GCC Version: {cc_version_string}")
 
-  if int(cc_version_number[0]) < REQUIRED_GCC_VERSION:
+  if cc_major_version < REQUIRED_GCC_VERSION:
     incorrect_version_exit("GCC", cc_version_string, f">={REQUIRED_GCC_VERSION}")
 
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_inflight_table;
   import autoisa_ci_types_pkg::*;
@@ -20,7 +20,7 @@ module tb_autoisa_ci_inflight_table;
   logic [AUTOISA_TAG_WIDTH-1:0] commit_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] commit_epoch;
   logic kill_valid, kill_hit;
-  logic [AUTOISA_TAG_WIDTH-1:0] kill_tag;
+  logic [  AUTOISA_TAG_WIDTH-1:0] kill_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] kill_epoch;
   logic retire_valid, retire_ready;
   autoisa_ci_rsp_t retire_rsp;
@@ -30,24 +30,38 @@ module tb_autoisa_ci_inflight_table;
 
   always #5 clk = ~clk;
 
-  autoisa_ci_inflight_table #(.DEPTH(DEPTH)) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .alloc_valid_i(alloc_valid), .alloc_ready_o(alloc_ready),
-      .alloc_req_i(alloc_req), .alloc_duplicate_o(alloc_duplicate),
-      .dispatch_valid_o(dispatch_valid), .dispatch_ready_i(dispatch_ready),
+  autoisa_ci_inflight_table #(
+      .DEPTH(DEPTH)
+  ) dut (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .alloc_valid_i(alloc_valid),
+      .alloc_ready_o(alloc_ready),
+      .alloc_req_i(alloc_req),
+      .alloc_duplicate_o(alloc_duplicate),
+      .dispatch_valid_o(dispatch_valid),
+      .dispatch_ready_i(dispatch_ready),
       .dispatch_req_o(dispatch_req),
-      .complete_valid_i(complete_valid), .complete_ready_o(complete_ready),
+      .complete_valid_i(complete_valid),
+      .complete_ready_o(complete_ready),
       .complete_rsp_i(complete_rsp),
-      .commit_valid_i(commit_valid), .commit_tag_i(commit_tag),
+      .commit_valid_i(commit_valid),
+      .commit_tag_i(commit_tag),
       .commit_epoch_i(commit_epoch),
-      .kill_valid_i(kill_valid), .kill_tag_i(kill_tag),
-      .kill_epoch_i(kill_epoch), .kill_wait_completion_i(1'b0),
+      .kill_valid_i(kill_valid),
+      .kill_tag_i(kill_tag),
+      .kill_epoch_i(kill_epoch),
+      .kill_wait_completion_i(1'b0),
       .kill_hit_o(kill_hit),
       .kill_dispatched_o(),
-      .retire_valid_o(retire_valid), .retire_ready_i(retire_ready),
+      .retire_valid_o(retire_valid),
+      .retire_ready_i(retire_ready),
       .retire_rsp_o(retire_rsp),
-      .occupancy_o(occupancy), .high_watermark_o(high_watermark),
-      .allocated_count_o(allocated_count), .retired_count_o(retired_count),
+      .occupancy_o(occupancy),
+      .high_watermark_o(high_watermark),
+      .allocated_count_o(allocated_count),
+      .retired_count_o(retired_count),
       .killed_count_o(killed_count),
       .orphan_completion_count_o(orphan_completion_count)
   );
@@ -101,7 +115,7 @@ module tb_autoisa_ci_inflight_table;
   task automatic commit(input logic [3:0] tag);
     begin
       @(negedge clk);
-      commit_tag = tag;
+      commit_tag   = tag;
       commit_epoch = '0;
       commit_valid = 1'b1;
       @(posedge clk);
@@ -113,7 +127,7 @@ module tb_autoisa_ci_inflight_table;
   task automatic kill(input logic [3:0] tag);
     begin
       @(negedge clk);
-      kill_tag = tag;
+      kill_tag   = tag;
       kill_epoch = '0;
       kill_valid = 1'b1;
       #1;
@@ -129,8 +143,7 @@ module tb_autoisa_ci_inflight_table;
       @(negedge clk);
       retire_ready = 1'b1;
       #1;
-      if (!retire_valid || (retire_rsp.tag != tag) ||
-          (retire_rsp.results[0] != value))
+      if (!retire_valid || (retire_rsp.tag != tag) || (retire_rsp.results[0] != value))
         $fatal(1, "retire mismatch: expected tag %0d value %h", tag, value);
       @(posedge clk);
       @(negedge clk);
@@ -171,8 +184,7 @@ module tb_autoisa_ci_inflight_table;
     alloc_req.tag = 4'd1;
     alloc_valid = 1'b1;
     #1;
-    if (!alloc_duplicate || alloc_ready)
-      $fatal(1, "duplicate tag/epoch was not rejected");
+    if (!alloc_duplicate || alloc_ready) $fatal(1, "duplicate tag/epoch was not rejected");
     @(negedge clk);
     alloc_valid = 1'b0;
 
@@ -186,13 +198,11 @@ module tb_autoisa_ci_inflight_table;
 
     // Lock tag 3 while stalled, even when older tag 1 becomes ready.
     @(negedge clk);
-    if (!retire_valid || (retire_rsp.tag != 4'd3))
-      $fatal(1, "tag 3 did not become retireable");
+    if (!retire_valid || (retire_rsp.tag != 4'd3)) $fatal(1, "tag 3 did not become retireable");
     @(posedge clk);
     complete(4'd1, 32'h1111);
     commit(4'd1);
-    if (!retire_valid || (retire_rsp.tag != 4'd3) ||
-        (retire_rsp.results[0] != 32'h3333))
+    if (!retire_valid || (retire_rsp.tag != 4'd3) || (retire_rsp.results[0] != 32'h3333))
       $fatal(1, "retire response changed while stalled");
     retire_expect(4'd3, 32'h3333);
     retire_expect(4'd1, 32'h1111);
@@ -211,7 +221,7 @@ module tb_autoisa_ci_inflight_table;
     allocate(4'd6, 2'd0);
     dispatch_expect(4'd6);
     kill(4'd6);
-    complete(4'd6, 32'h6666); // late response is consumed as an orphan
+    complete(4'd6, 32'h6666);  // late response is consumed as an orphan
 
     allocate(4'd7, 2'd0);
     dispatch_expect(4'd7);
@@ -221,9 +231,15 @@ module tb_autoisa_ci_inflight_table;
     if ((occupancy != 0) || (allocated_count != 7) ||
         (retired_count != 4) || (killed_count != 3) ||
         (orphan_completion_count != 1))
-      $fatal(1, "terminal accounting mismatch occ=%0d alloc=%0d retire=%0d kill=%0d orphan=%0d",
-             occupancy, allocated_count, retired_count, killed_count,
-             orphan_completion_count);
+      $fatal(
+          1,
+          "terminal accounting mismatch occ=%0d alloc=%0d retire=%0d kill=%0d orphan=%0d",
+          occupancy,
+          allocated_count,
+          retired_count,
+          killed_count,
+          orphan_completion_count
+      );
     if ((retired_count + killed_count) != allocated_count)
       $fatal(1, "not every accepted request has exactly one terminal outcome");
 

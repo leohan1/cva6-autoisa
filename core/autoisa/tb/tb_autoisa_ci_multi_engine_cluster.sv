@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_multi_engine_cluster;
   import autoisa_ci_types_pkg::*;
@@ -25,18 +25,30 @@ module tb_autoisa_ci_multi_engine_cluster;
 
   always #5 clk = ~clk;
 
-  autoisa_ci_multi_engine_cluster #(.PENDING_DEPTH(4)) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .req_valid_i(req_valid), .req_ready_o(req_ready), .req_i(req),
+  autoisa_ci_multi_engine_cluster #(
+      .PENDING_DEPTH(4)
+  ) dut (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .req_valid_i(req_valid),
+      .req_ready_o(req_ready),
+      .req_i(req),
       .req_supported_o(req_supported),
-      .kill_valid_i(kill_valid), .kill_tag_i(kill_tag),
-      .kill_epoch_i(kill_epoch), .kill_pending_hit_o(kill_pending_hit),
+      .kill_valid_i(kill_valid),
+      .kill_tag_i(kill_tag),
+      .kill_epoch_i(kill_epoch),
+      .kill_pending_hit_o(kill_pending_hit),
       .kill_running_hit_o(kill_running_hit),
-      .rsp_valid_o(rsp_valid), .rsp_ready_i(rsp_ready), .rsp_o(rsp),
+      .rsp_valid_o(rsp_valid),
+      .rsp_ready_i(rsp_ready),
+      .rsp_o(rsp),
       .pending_occupancy_o(pending_occupancy),
       .pending_high_watermark_o(pending_high_watermark),
-      .engine0_busy_o(engine0_busy), .engine1_busy_o(engine1_busy),
-      .engine0_running_o(engine0_running), .engine1_running_o(engine1_running),
+      .engine0_busy_o(engine0_busy),
+      .engine1_busy_o(engine1_busy),
+      .engine0_running_o(engine0_running),
+      .engine1_running_o(engine1_running),
       .accepted_count_o(accepted_count),
       .engine0_dispatch_count_o(engine0_dispatch_count),
       .engine1_dispatch_count_o(engine1_dispatch_count),
@@ -50,12 +62,8 @@ module tb_autoisa_ci_multi_engine_cluster;
     if (rst_n && engine0_busy && engine1_busy)
       parallel_busy_cycles = parallel_busy_cycles + 1;
 
-  task automatic submit(
-      input logic [3:0] tag,
-      input logic [7:0] ci_id,
-      input logic [31:0] operand0,
-      input logic [31:0] operand1
-  );
+  task automatic submit(input logic [3:0] tag, input logic [7:0] ci_id, input logic [31:0] operand0,
+                        input logic [31:0] operand1);
     begin
       @(negedge clk);
       req = '0;
@@ -74,17 +82,20 @@ module tb_autoisa_ci_multi_engine_cluster;
     end
   endtask
 
-  task automatic consume_expect(
-      input logic [3:0] tag,
-      input logic [31:0] value
-  );
+  task automatic consume_expect(input logic [3:0] tag, input logic [31:0] value);
     begin
       while (!rsp_valid) @(negedge clk);
       if ((rsp.tag != tag) || (rsp.epoch != 0) ||
           (rsp.status != AUTOISA_STATUS_OK) ||
           (rsp.result_valid != 2'b01) || (rsp.results[0] != value))
-        $fatal(1, "response mismatch tag=%0d got_tag=%0d got=%h expected=%h",
-               tag, rsp.tag, rsp.results[0], value);
+        $fatal(
+            1,
+            "response mismatch tag=%0d got_tag=%0d got=%h expected=%h",
+            tag,
+            rsp.tag,
+            rsp.results[0],
+            value
+        );
       rsp_ready = 1'b1;
       @(posedge clk);
       @(negedge clk);
@@ -151,9 +162,14 @@ module tb_autoisa_ci_multi_engine_cluster;
       $fatal(1, "the two physical engines were never busy concurrently");
     if ((accepted_count != 5) || (engine0_dispatch_count != 2) ||
         (engine1_dispatch_count != 3) || (completion_count != 5))
-      $fatal(1, "counter mismatch accepted=%0d e0=%0d e1=%0d completed=%0d",
-             accepted_count, engine0_dispatch_count,
-             engine1_dispatch_count, completion_count);
+      $fatal(
+          1,
+          "counter mismatch accepted=%0d e0=%0d e1=%0d completed=%0d",
+          accepted_count,
+          engine0_dispatch_count,
+          engine1_dispatch_count,
+          completion_count
+      );
 
     // Unsupported CI IDs are explicitly reported and never accepted.
     @(negedge clk);
@@ -162,8 +178,7 @@ module tb_autoisa_ci_multi_engine_cluster;
     req.ci_id = 8'd12;
     req_valid = 1'b1;
     #1;
-    if (req_supported || req_ready)
-      $fatal(1, "unsupported CI ID was accepted");
+    if (req_supported || req_ready) $fatal(1, "unsupported CI ID was accepted");
     @(posedge clk);
     @(negedge clk);
     req_valid = 1'b0;
@@ -171,10 +186,10 @@ module tb_autoisa_ci_multi_engine_cluster;
     if ((unsupported_stall_count != 1) || (pending_occupancy != 0))
       $fatal(1, "unsupported/pending accounting mismatch");
 
-    $display("DATA: accepted=%0d engine0_dispatch=%0d engine1_dispatch=%0d completed=%0d parallel_busy_cycles=%0d pending_hwm=%0d unsupported_stall=%0d order=3,1,2",
-             accepted_count, engine0_dispatch_count, engine1_dispatch_count,
-             completion_count, parallel_busy_cycles, pending_high_watermark,
-             unsupported_stall_count);
+    $display(
+        "DATA: accepted=%0d engine0_dispatch=%0d engine1_dispatch=%0d completed=%0d parallel_busy_cycles=%0d pending_hwm=%0d unsupported_stall=%0d order=3,1,2",
+        accepted_count, engine0_dispatch_count, engine1_dispatch_count, completion_count,
+        parallel_busy_cycles, pending_high_watermark, unsupported_stall_count);
     $display("PASS: autoisa_ci_multi_engine_cluster");
     $finish;
   end

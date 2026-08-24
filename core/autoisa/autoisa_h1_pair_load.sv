@@ -10,49 +10,49 @@ module autoisa_h1_pair_load #(
     parameter int unsigned TXN_ID_WIDTH = 4,
     parameter int unsigned COUNT_WIDTH  = 32
 ) (
-    input  logic                    clk_i,
-    input  logic                    rst_ni,
+    input logic clk_i,
+    input logic rst_ni,
 
     input  logic                    req_valid_i,
     output logic                    req_ready_o,
-    input  logic [ADDR_WIDTH-1:0]   req_base_i,
-    input  logic [IMM_WIDTH-1:0]    req_imm_i,
-    input  logic [4:0]              req_rd_even_i,
+    input  logic [  ADDR_WIDTH-1:0] req_base_i,
+    input  logic [   IMM_WIDTH-1:0] req_imm_i,
+    input  logic [             4:0] req_rd_even_i,
     input  logic [TXN_ID_WIDTH-1:0] req_txn_id_i,
 
-    input  logic                    kill_valid_i,
-    input  logic [TXN_ID_WIDTH-1:0] kill_txn_id_i,
+    input logic                    kill_valid_i,
+    input logic [TXN_ID_WIDTH-1:0] kill_txn_id_i,
 
     output logic                    mem_req_valid_o,
     input  logic                    mem_req_ready_i,
-    output logic [ADDR_WIDTH-1:0]   mem_req_addr_o,
-    output logic [2:0]              mem_req_size_o,
-    output logic [7:0]              mem_req_be_o,
+    output logic [  ADDR_WIDTH-1:0] mem_req_addr_o,
+    output logic [             2:0] mem_req_size_o,
+    output logic [             7:0] mem_req_be_o,
     output logic [TXN_ID_WIDTH-1:0] mem_req_txn_id_o,
 
     input  logic                    mem_rsp_valid_i,
     output logic                    mem_rsp_ready_o,
-    input  logic [63:0]             mem_rsp_data_i,
+    input  logic [            63:0] mem_rsp_data_i,
     input  logic                    mem_rsp_error_i,
     input  logic [TXN_ID_WIDTH-1:0] mem_rsp_txn_id_i,
 
     output logic                    result_valid_o,
     input  logic                    result_ready_i,
     output logic                    result_pair_we_o,
-    output logic [4:0]              result_rd0_o,
-    output logic [4:0]              result_rd1_o,
-    output logic [31:0]             result_data0_o,
-    output logic [31:0]             result_data1_o,
+    output logic [             4:0] result_rd0_o,
+    output logic [             4:0] result_rd1_o,
+    output logic [            31:0] result_data0_o,
+    output logic [            31:0] result_data1_o,
     output logic                    result_exception_o,
-    output logic [1:0]              result_exception_code_o,
+    output logic [             1:0] result_exception_code_o,
     output logic                    result_killed_o,
     output logic [TXN_ID_WIDTH-1:0] result_txn_id_o,
 
-    output logic [COUNT_WIDTH-1:0]  accepted_count_o,
-    output logic [COUNT_WIDTH-1:0]  mem_request_count_o,
-    output logic [COUNT_WIDTH-1:0]  mem_response_count_o,
-    output logic [COUNT_WIDTH-1:0]  alignment_reject_count_o,
-    output logic [COUNT_WIDTH-1:0]  killed_count_o
+    output logic [COUNT_WIDTH-1:0] accepted_count_o,
+    output logic [COUNT_WIDTH-1:0] mem_request_count_o,
+    output logic [COUNT_WIDTH-1:0] mem_response_count_o,
+    output logic [COUNT_WIDTH-1:0] alignment_reject_count_o,
+    output logic [COUNT_WIDTH-1:0] killed_count_o
 );
 
   localparam logic [1:0] EXC_NONE      = 2'd0;
@@ -96,12 +96,10 @@ module autoisa_h1_pair_load #(
 
   // A mismatched response must not be consumed.  H1 v1 permits one
   // outstanding pair load per controller.
-  assign mem_rsp_ready_o =
-      (state_q == WAIT_MEMORY_RESPONSE) && (mem_rsp_txn_id_i == txn_id_q);
+  assign mem_rsp_ready_o = (state_q == WAIT_MEMORY_RESPONSE) && (mem_rsp_txn_id_i == txn_id_q);
 
   assign result_valid_o = (state_q == HOLD_RESULT);
-  assign result_pair_we_o =
-      result_valid_o && !result_exception_q && !result_killed_q;
+  assign result_pair_we_o = result_valid_o && !result_exception_q && !result_killed_q;
   assign result_rd0_o = rd_even_q;
   assign result_rd1_o = rd_even_q + 5'd1;
   assign result_data0_o = result_data0_q;
