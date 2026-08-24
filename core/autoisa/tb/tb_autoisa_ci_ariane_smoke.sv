@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Minimal reset/clock smoke top for stock and AUTOISA_CI_CVXIF Ariane builds.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 module tb_autoisa_ci_ariane_smoke;
   function automatic config_pkg::cva6_cfg_t smoke_config();
     config_pkg::cva6_cfg_t cfg;
@@ -24,19 +24,19 @@ module tb_autoisa_ci_ariane_smoke;
   always #5ns clk_i = ~clk_i;
 
   ariane #(
-    .CVA6Cfg (CVA6Cfg)
+      .CVA6Cfg(CVA6Cfg)
   ) dut (
-    .clk_i         (clk_i),
-    .rst_ni        (rst_ni),
-    .boot_addr_i   ('0),
-    .hart_id_i     ('0),
-    .irq_i         ('0),
-    .ipi_i         (1'b0),
-    .time_irq_i    (1'b0),
-    .debug_req_i   (1'b0),
-    .rvfi_probes_o (),
-    .noc_req_o     (),
-    .noc_resp_i    ('0)
+      .clk_i        (clk_i),
+      .rst_ni       (rst_ni),
+      .boot_addr_i  ('0),
+      .hart_id_i    ('0),
+      .irq_i        ('0),
+      .ipi_i        (1'b0),
+      .time_irq_i   (1'b0),
+      .debug_req_i  (1'b0),
+      .rvfi_probes_o(),
+      .noc_req_o    (),
+      .noc_resp_i   ('0)
   );
 
   initial begin

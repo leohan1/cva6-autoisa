@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // Pure-compute reference engine for dummy semantics D0-D7.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_dummy_engine (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire req_valid_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire req_valid_i,
     output logic req_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_req_t req_i,
+    input autoisa_ci_types_pkg::autoisa_ci_req_t req_i,
     output logic rsp_valid_o,
-    input  wire rsp_ready_i,
+    input wire rsp_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_rsp_t rsp_o
 );
   import autoisa_ci_types_pkg::*;
@@ -49,11 +49,11 @@ module autoisa_ci_dummy_engine (
       unique case (req.ci_id)
         8'd0: begin
           result.result_valid = 2'b01;
-          result.results[0] = req.operands[0] + req.operands[1];
+          result.results[0]   = req.operands[0] + req.operands[1];
         end
         8'd1: begin
           result.result_valid = 2'b01;
-          result.results[0] = (req.operands[0] * req.operands[1]) + req.operands[2];
+          result.results[0]   = (req.operands[0] * req.operands[1]) + req.operands[2];
         end
         8'd2: begin
           result.result_valid = 2'b01;
@@ -62,8 +62,8 @@ module autoisa_ci_dummy_engine (
         end
         8'd3: begin
           result.result_valid = 2'b11;
-          result.results[0] = req.operands[0] + req.operands[1];
-          result.results[1] = req.operands[0] - req.operands[1];
+          result.results[0]   = req.operands[0] + req.operands[1];
+          result.results[1]   = req.operands[0] - req.operands[1];
         end
         8'd4: begin
           result.result_valid = 2'b11;
@@ -89,20 +89,19 @@ module autoisa_ci_dummy_engine (
         8'd7: begin
           shamt = req.immediate[4:0];
           result.result_valid = 2'b01;
-          result.results[0] = (req.operands[0] << shamt) ^
-                              (req.operands[1] + req.immediate);
+          result.results[0] = (req.operands[0] << shamt) ^ (req.operands[1] + req.immediate);
         end
         8'd9: begin
           result.result_valid = 2'b01;
-          result.results[0] = req.operands[0] ^ req.operands[1];
+          result.results[0]   = req.operands[0] ^ req.operands[1];
         end
         8'd8: begin
           result.result_valid = 2'b01;
-          result.results[0] = req.operands[0] + req.operands[1];
+          result.results[0]   = req.operands[0] + req.operands[1];
         end
         8'd10: begin
           result.result_valid = 2'b01;
-          result.results[0] = req.operands[0] + req.operands[1];
+          result.results[0]   = req.operands[0] + req.operands[1];
         end
         8'd11: begin
           result.result_valid = 2'b00;

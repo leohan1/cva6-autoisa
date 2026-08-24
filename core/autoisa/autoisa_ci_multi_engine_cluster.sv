@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Two-engine pending scheduler with oldest-ready selection and response merge.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_multi_engine_cluster #(
@@ -9,23 +9,23 @@ module autoisa_ci_multi_engine_cluster #(
     parameter int unsigned INDEX_WIDTH = (PENDING_DEPTH > 1) ? $clog2(PENDING_DEPTH) : 1,
     parameter int unsigned OCC_WIDTH = $clog2(PENDING_DEPTH + 1)
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire req_valid_i,
+    input wire req_valid_i,
     output logic req_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_req_t req_i,
+    input autoisa_ci_types_pkg::autoisa_ci_req_t req_i,
     output logic req_supported_o,
 
-    input  wire kill_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] kill_tag_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] kill_epoch_i,
+    input wire kill_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] kill_tag_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] kill_epoch_i,
     output logic kill_pending_hit_o,
     output logic kill_running_hit_o,
 
     output logic rsp_valid_o,
-    input  wire rsp_ready_i,
+    input wire rsp_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_rsp_t rsp_o,
 
     output logic [OCC_WIDTH-1:0] pending_occupancy_o,
@@ -46,8 +46,8 @@ module autoisa_ci_multi_engine_cluster #(
 
   logic [PENDING_DEPTH-1:0] valid_q;
   logic [PENDING_DEPTH-1:0] pending_engine_q;
-  autoisa_ci_req_t pending_req_q [0:PENDING_DEPTH-1];
-  logic [COUNT_WIDTH-1:0] age_q [0:PENDING_DEPTH-1];
+  autoisa_ci_req_t pending_req_q[0:PENDING_DEPTH-1];
+  logic [COUNT_WIDTH-1:0] age_q[0:PENDING_DEPTH-1];
   logic [COUNT_WIDTH-1:0] next_age_q;
 
   logic input_supported, input_engine_id;
@@ -135,18 +135,24 @@ module autoisa_ci_multi_engine_cluster #(
         (engine1_epoch_q == kill_epoch_i)));
 
   autoisa_ci_dummy_engine i_engine0 (
-      .clk_i(clk_i), .rst_ni(rst_ni),
-      .req_valid_i(engine0_req_valid), .req_ready_o(engine0_req_ready),
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .req_valid_i(engine0_req_valid),
+      .req_ready_o(engine0_req_ready),
       .req_i(selected_req),
-      .rsp_valid_o(engine0_rsp_valid), .rsp_ready_i(engine0_rsp_ready),
+      .rsp_valid_o(engine0_rsp_valid),
+      .rsp_ready_i(engine0_rsp_ready),
       .rsp_o(engine0_rsp)
   );
 
   autoisa_ci_dummy_engine i_engine1 (
-      .clk_i(clk_i), .rst_ni(rst_ni),
-      .req_valid_i(engine1_req_valid), .req_ready_o(engine1_req_ready),
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .req_valid_i(engine1_req_valid),
+      .req_ready_o(engine1_req_ready),
       .req_i(selected_req),
-      .rsp_valid_o(engine1_rsp_valid), .rsp_ready_i(engine1_rsp_ready),
+      .rsp_valid_o(engine1_rsp_valid),
+      .rsp_ready_i(engine1_rsp_ready),
       .rsp_o(engine1_rsp)
   );
 
@@ -192,10 +198,8 @@ module autoisa_ci_multi_engine_cluster #(
     end else begin
       if (dispatch_fire) begin
         valid_q[selected_index] <= 1'b0;
-        if (selected_engine_id)
-          engine1_dispatch_count_o <= engine1_dispatch_count_o + 1'b1;
-        else
-          engine0_dispatch_count_o <= engine0_dispatch_count_o + 1'b1;
+        if (selected_engine_id) engine1_dispatch_count_o <= engine1_dispatch_count_o + 1'b1;
+        else engine0_dispatch_count_o <= engine0_dispatch_count_o + 1'b1;
       end
 
       if (accept_fire) begin
@@ -209,7 +213,7 @@ module autoisa_ci_multi_engine_cluster #(
 
       if (kill_pending_hit_o) begin
         valid_q[pending_kill_index] <= 1'b0;
-        pending_kill_drop_count_o <= pending_kill_drop_count_o + 1'b1;
+        pending_kill_drop_count_o   <= pending_kill_drop_count_o + 1'b1;
       end
 
       if (engine0_req_valid && engine0_req_ready) begin
@@ -222,15 +226,12 @@ module autoisa_ci_multi_engine_cluster #(
         engine1_tag_q <= selected_req.tag;
         engine1_epoch_q <= selected_req.epoch;
       end
-      if (engine0_rsp_valid && engine0_rsp_ready)
-        engine0_active_q <= 1'b0;
-      if (engine1_rsp_valid && engine1_rsp_ready)
-        engine1_active_q <= 1'b0;
+      if (engine0_rsp_valid && engine0_rsp_ready) engine0_active_q <= 1'b0;
+      if (engine1_rsp_valid && engine1_rsp_ready) engine1_active_q <= 1'b0;
 
       if (accept_fire && (pending_occupancy_o + 1'b1 > pending_high_watermark_o))
         pending_high_watermark_o <= pending_occupancy_o + 1'b1;
-      if (rsp_valid_o && rsp_ready_i)
-        completion_count_o <= completion_count_o + 1'b1;
+      if (rsp_valid_o && rsp_ready_i) completion_count_o <= completion_count_o + 1'b1;
       if (req_valid_i && !input_supported)
         unsupported_stall_count_o <= unsupported_stall_count_o + 1'b1;
 
@@ -245,8 +246,7 @@ module autoisa_ci_multi_engine_cluster #(
         valid_q <= '0;
         next_age_q <= '0;
         pending_high_watermark_o <= '0;
-        pending_flush_drop_count_o <= pending_flush_drop_count_o +
-                                      pending_occupancy_o;
+        pending_flush_drop_count_o <= pending_flush_drop_count_o + pending_occupancy_o;
       end
     end
   end
@@ -256,9 +256,8 @@ module autoisa_ci_multi_engine_cluster #(
   autoisa_ci_rsp_t stalled_rsp_q;
 
   initial begin
-    assert ((PENDING_DEPTH == 2) || (PENDING_DEPTH == 4) ||
-            (PENDING_DEPTH == 8))
-      else $error("autoisa_ci_multi_engine_cluster PENDING_DEPTH must be 2, 4, or 8");
+    assert ((PENDING_DEPTH == 2) || (PENDING_DEPTH == 4) || (PENDING_DEPTH == 8))
+    else $error("autoisa_ci_multi_engine_cluster PENDING_DEPTH must be 2, 4, or 8");
   end
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -267,12 +266,12 @@ module autoisa_ci_multi_engine_cluster #(
       stalled_rsp_q <= '0;
     end else begin
       assert (pending_occupancy_o <= PENDING_DEPTH)
-        else $error("multi-engine pending occupancy overflow");
+      else $error("multi-engine pending occupancy overflow");
       assert (!(engine0_req_valid && engine1_req_valid))
-        else $error("multi-engine scheduler dispatched twice in one cycle");
+      else $error("multi-engine scheduler dispatched twice in one cycle");
       if (rsp_stalled_q) begin
         assert (rsp_valid_o && (rsp_o == stalled_rsp_q))
-          else $error("multi-engine merged response changed while stalled");
+        else $error("multi-engine merged response changed while stalled");
       end
       rsp_stalled_q <= rsp_valid_o && !rsp_ready_i;
       if (rsp_valid_o && !rsp_ready_i) stalled_rsp_q <= rsp_o;

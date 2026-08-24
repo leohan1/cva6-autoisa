@@ -1,8 +1,8 @@
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_cva6_decode_adapter (
-    input  wire [31:0] instr_i,
+    input wire [31:0] instr_i,
     output logic ci_valid_o,
     output logic ci_illegal_o,
     output logic native_cvxif_supported_o,

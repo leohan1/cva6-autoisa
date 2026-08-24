@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_concurrent_shell;
   import autoisa_ci_types_pkg::*;
 
-  localparam int unsigned REQUEST_DEPTH = 4;
+  localparam int unsigned REQUEST_DEPTH  = 4;
   localparam int unsigned INFLIGHT_DEPTH = 4;
-  localparam int unsigned RESULT_DEPTH = 2;
+  localparam int unsigned RESULT_DEPTH   = 2;
 
   logic clk = 1'b0;
   logic rst_n = 1'b0;
@@ -17,7 +17,7 @@ module tb_autoisa_ci_concurrent_shell;
   logic [AUTOISA_TAG_WIDTH-1:0] commit_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] commit_epoch;
   logic kill_valid, kill_hit;
-  logic [AUTOISA_TAG_WIDTH-1:0] kill_tag;
+  logic [  AUTOISA_TAG_WIDTH-1:0] kill_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] kill_epoch;
   logic result_valid, result_ready;
   autoisa_ci_rsp_t result;
@@ -37,26 +37,34 @@ module tb_autoisa_ci_concurrent_shell;
   logic [31:0] result_flush_drop_count;
   logic engine_skid_occupancy, engine_skid_high_watermark;
   logic [31:0] skid_killed_drop_count, skid_flush_drop_count;
-  logic [$clog2(REQUEST_DEPTH+1)-1:0] observed_request_hwm;
+  logic [ $clog2(REQUEST_DEPTH+1)-1:0] observed_request_hwm;
   logic [$clog2(INFLIGHT_DEPTH+1)-1:0] observed_inflight_hwm;
-  logic [$clog2(RESULT_DEPTH+1)-1:0] observed_result_hwm;
-  logic [$clog2(RESULT_DEPTH+1)-1:0] observed_credit_hwm;
+  logic [  $clog2(RESULT_DEPTH+1)-1:0] observed_result_hwm;
+  logic [  $clog2(RESULT_DEPTH+1)-1:0] observed_credit_hwm;
 
   always #5 clk = ~clk;
 
   autoisa_ci_concurrent_shell #(
-      .REQUEST_DEPTH(REQUEST_DEPTH),
+      .REQUEST_DEPTH (REQUEST_DEPTH),
       .INFLIGHT_DEPTH(INFLIGHT_DEPTH),
-      .RESULT_DEPTH(RESULT_DEPTH)
+      .RESULT_DEPTH  (RESULT_DEPTH)
   ) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .req_valid_i(req_valid), .req_ready_o(req_ready), .req_i(req),
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .req_valid_i(req_valid),
+      .req_ready_o(req_ready),
+      .req_i(req),
       .req_duplicate_o(req_duplicate),
-      .commit_valid_i(commit_valid), .commit_tag_i(commit_tag),
+      .commit_valid_i(commit_valid),
+      .commit_tag_i(commit_tag),
       .commit_epoch_i(commit_epoch),
-      .kill_valid_i(kill_valid), .kill_tag_i(kill_tag),
-      .kill_epoch_i(kill_epoch), .kill_hit_o(kill_hit),
-      .result_valid_o(result_valid), .result_ready_i(result_ready),
+      .kill_valid_i(kill_valid),
+      .kill_tag_i(kill_tag),
+      .kill_epoch_i(kill_epoch),
+      .kill_hit_o(kill_hit),
+      .result_valid_o(result_valid),
+      .result_ready_i(result_ready),
       .result_o(result),
       .request_occupancy_o(request_occupancy),
       .request_high_watermark_o(request_high_watermark),
@@ -72,7 +80,8 @@ module tb_autoisa_ci_concurrent_shell;
       .dispatched_count_o(dispatched_count),
       .engine_started_count_o(engine_started_count),
       .completion_count_o(completion_count),
-      .retired_count_o(retired_count), .killed_count_o(killed_count),
+      .retired_count_o(retired_count),
+      .killed_count_o(killed_count),
       .orphan_completion_count_o(orphan_completion_count),
       .tombstone_drop_count_o(tombstone_drop_count),
       .credit_stall_count_o(credit_stall_count),
@@ -82,12 +91,8 @@ module tb_autoisa_ci_concurrent_shell;
       .skid_flush_drop_count_o(skid_flush_drop_count)
   );
 
-  task automatic submit(
-      input logic [3:0] tag,
-      input logic [7:0] ci_id,
-      input logic [31:0] operand0,
-      input logic [31:0] operand1
-  );
+  task automatic submit(input logic [3:0] tag, input logic [7:0] ci_id, input logic [31:0] operand0,
+                        input logic [31:0] operand1);
     begin
       @(negedge clk);
       req = '0;
@@ -99,8 +104,7 @@ module tb_autoisa_ci_concurrent_shell;
       req.operands[1] = operand1;
       req_valid = 1'b1;
       #1;
-      if (!req_ready || req_duplicate)
-        $fatal(1, "request %0d was not accepted", tag);
+      if (!req_ready || req_duplicate) $fatal(1, "request %0d was not accepted", tag);
       @(posedge clk);
       @(negedge clk);
       req_valid = 1'b0;
@@ -110,7 +114,7 @@ module tb_autoisa_ci_concurrent_shell;
   task automatic commit(input logic [3:0] tag);
     begin
       @(negedge clk);
-      commit_tag = tag;
+      commit_tag   = tag;
       commit_epoch = 2'd0;
       commit_valid = 1'b1;
       @(posedge clk);
@@ -122,7 +126,7 @@ module tb_autoisa_ci_concurrent_shell;
   task automatic kill(input logic [3:0] tag);
     begin
       @(negedge clk);
-      kill_tag = tag;
+      kill_tag   = tag;
       kill_epoch = 2'd0;
       kill_valid = 1'b1;
       #1;
@@ -133,10 +137,7 @@ module tb_autoisa_ci_concurrent_shell;
     end
   endtask
 
-  task automatic retire_expect(
-      input logic [3:0] tag,
-      input logic [31:0] expected
-  );
+  task automatic retire_expect(input logic [3:0] tag, input logic [31:0] expected);
     begin
       @(negedge clk);
       result_ready = 1'b1;
@@ -177,9 +178,8 @@ module tb_autoisa_ci_concurrent_shell;
 
     if ((inflight_occupancy != 4) || (inflight_high_watermark != 4))
       $fatal(1, "did not reach four simultaneous inflight requests");
-    if (request_high_watermark <= 1)
-      $fatal(1, "request queue occupancy never exceeded one");
-    observed_request_hwm = request_high_watermark;
+    if (request_high_watermark <= 1) $fatal(1, "request queue occupancy never exceeded one");
+    observed_request_hwm  = request_high_watermark;
     observed_inflight_hwm = inflight_high_watermark;
 
     // A duplicate still in the queue must be rejected at shell ingress.
@@ -190,8 +190,7 @@ module tb_autoisa_ci_concurrent_shell;
     req.ci_id = 8'd0;
     req_valid = 1'b1;
     #1;
-    if (!req_duplicate || req_ready)
-      $fatal(1, "queued duplicate identity was not rejected");
+    if (!req_duplicate || req_ready) $fatal(1, "queued duplicate identity was not rejected");
     @(posedge clk);
     @(negedge clk);
     req_valid = 1'b0;
@@ -213,8 +212,7 @@ module tb_autoisa_ci_concurrent_shell;
     // Hold the result channel stalled while tag 4 completes behind tag 3.
     repeat (3) begin
       @(posedge clk);
-      if (!result_valid || (result.tag != 4'd3) ||
-          (result.results[0] != 32'd33))
+      if (!result_valid || (result.tag != 4'd3) || (result.results[0] != 32'd33))
         $fatal(1, "result changed under backpressure");
     end
 
@@ -232,8 +230,7 @@ module tb_autoisa_ci_concurrent_shell;
           (reserved_result_credits != 0))
         $fatal(1, "dispatch was not stopped by exhausted result credits");
     end
-    if (credit_stall_count == 0)
-      $fatal(1, "credit stall was not observed");
+    if (credit_stall_count == 0) $fatal(1, "credit stall was not observed");
 
     // Each Host dequeue frees exactly one slot/credit for one younger request.
     retire_expect(4'd3, 32'd33);
@@ -255,10 +252,19 @@ module tb_autoisa_ci_concurrent_shell;
         (inflight_occupancy != 0) || (result_occupancy != 0) ||
         (reserved_result_credits != 0) || (result_high_watermark != 2) ||
         (credit_high_watermark == 0) || (result_full_stall_count != 0))
-      $fatal(1, "shell accounting mismatch acc=%0d disp=%0d comp=%0d ret=%0d kill=%0d orphan=%0d tomb=%0d rq=%0d inf=%0d",
-             accepted_count, dispatched_count, completion_count,
-             retired_count, killed_count, orphan_completion_count,
-             tombstone_drop_count, request_occupancy, inflight_occupancy);
+      $fatal(
+          1,
+          "shell accounting mismatch acc=%0d disp=%0d comp=%0d ret=%0d kill=%0d orphan=%0d tomb=%0d rq=%0d inf=%0d",
+          accepted_count,
+          dispatched_count,
+          completion_count,
+          retired_count,
+          killed_count,
+          orphan_completion_count,
+          tombstone_drop_count,
+          request_occupancy,
+          inflight_occupancy
+      );
     if ((retired_count + killed_count) != accepted_count)
       $fatal(1, "accepted requests did not have one terminal outcome");
     observed_result_hwm = result_high_watermark;
@@ -268,8 +274,7 @@ module tb_autoisa_ci_concurrent_shell;
     // terminally killed; the executing engine response is drained afterward.
     submit(4'd8, 8'd9, 32'h1234_5678, 32'hffff_0000);
     submit(4'd9, 8'd0, 32'd9, 32'd90);
-    if (inflight_occupancy != 2)
-      $fatal(1, "flush setup did not create two live requests");
+    if (inflight_occupancy != 2) $fatal(1, "flush setup did not create two live requests");
     @(negedge clk);
     flush = 1'b1;
     @(posedge clk);
@@ -290,14 +295,12 @@ module tb_autoisa_ci_concurrent_shell;
     if ((retired_count + killed_count) != accepted_count)
       $fatal(1, "post-flush terminal accounting failed");
 
-    $display("DATA: accepted=%0d dispatched=%0d engine_started=%0d completed=%0d retired=%0d killed=%0d orphan=%0d skid_kill=%0d skid_flush=%0d request_hwm=%0d inflight_hwm=%0d result_hwm=%0d credit_hwm=%0d credit_stall=%0d",
-             accepted_count, dispatched_count, engine_started_count,
-             completion_count,
-             retired_count, killed_count, orphan_completion_count,
-             skid_killed_drop_count, skid_flush_drop_count,
-             observed_request_hwm, observed_inflight_hwm,
-             observed_result_hwm, observed_credit_hwm,
-             credit_stall_count);
+    $display(
+        "DATA: accepted=%0d dispatched=%0d engine_started=%0d completed=%0d retired=%0d killed=%0d orphan=%0d skid_kill=%0d skid_flush=%0d request_hwm=%0d inflight_hwm=%0d result_hwm=%0d credit_hwm=%0d credit_stall=%0d",
+        accepted_count, dispatched_count, engine_started_count, completion_count, retired_count,
+        killed_count, orphan_completion_count, skid_killed_drop_count, skid_flush_drop_count,
+        observed_request_hwm, observed_inflight_hwm, observed_result_hwm, observed_credit_hwm,
+        credit_stall_count);
     $display("PASS: autoisa_ci_concurrent_shell");
     $finish;
   end

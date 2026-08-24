@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Parameterized ready/valid queue for complete tagged AutoISA CI responses.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_result_queue #(
@@ -9,20 +9,20 @@ module autoisa_ci_result_queue #(
     parameter int unsigned PTR_WIDTH   = (DEPTH > 1) ? $clog2(DEPTH) : 1,
     parameter int unsigned OCC_WIDTH   = $clog2(DEPTH + 1)
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire in_valid_i,
+    input wire in_valid_i,
     output logic in_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_rsp_t in_rsp_i,
+    input autoisa_ci_types_pkg::autoisa_ci_rsp_t in_rsp_i,
 
     output logic out_valid_o,
-    input  wire out_ready_i,
+    input wire out_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_rsp_t out_rsp_o,
 
-    output logic [OCC_WIDTH-1:0] occupancy_o,
-    output logic [OCC_WIDTH-1:0] high_watermark_o,
+    output logic [  OCC_WIDTH-1:0] occupancy_o,
+    output logic [  OCC_WIDTH-1:0] high_watermark_o,
     output logic [COUNT_WIDTH-1:0] enqueue_count_o,
     output logic [COUNT_WIDTH-1:0] dequeue_count_o,
     output logic [COUNT_WIDTH-1:0] full_stall_count_o,
@@ -30,7 +30,7 @@ module autoisa_ci_result_queue #(
 );
   import autoisa_ci_types_pkg::*;
 
-  autoisa_ci_rsp_t mem_q [0:DEPTH-1];
+  autoisa_ci_rsp_t mem_q[0:DEPTH-1];
   logic [PTR_WIDTH-1:0] read_ptr_q, write_ptr_q;
   logic [OCC_WIDTH-1:0] occupancy_q, occupancy_d;
   logic enqueue, dequeue, bypass, push_mem, pop_mem;
@@ -49,9 +49,11 @@ module autoisa_ci_result_queue #(
 
   always_comb begin
     occupancy_d = occupancy_q;
-    unique case ({push_mem, pop_mem})
-      2'b10: occupancy_d = occupancy_q + 1'b1;
-      2'b01: occupancy_d = occupancy_q - 1'b1;
+    unique case ({
+      push_mem, pop_mem
+    })
+      2'b10:   occupancy_d = occupancy_q + 1'b1;
+      2'b01:   occupancy_d = occupancy_q - 1'b1;
       default: occupancy_d = occupancy_q;
     endcase
   end
@@ -69,8 +71,7 @@ module autoisa_ci_result_queue #(
       full_stall_count_o <= '0;
       flush_drop_count_o <= '0;
     end else begin
-      if (in_valid_i && !in_ready_o && !flush_i)
-        full_stall_count_o <= full_stall_count_o + 1'b1;
+      if (in_valid_i && !in_ready_o && !flush_i) full_stall_count_o <= full_stall_count_o + 1'b1;
       if (enqueue) enqueue_count_o <= enqueue_count_o + 1'b1;
       if (dequeue) dequeue_count_o <= dequeue_count_o + 1'b1;
 
@@ -82,8 +83,7 @@ module autoisa_ci_result_queue #(
         high_watermark_o <= '0;
       end else begin
         occupancy_q <= occupancy_d;
-        if (occupancy_d > high_watermark_o)
-          high_watermark_o <= occupancy_d;
+        if (occupancy_d > high_watermark_o) high_watermark_o <= occupancy_d;
 
         if (push_mem) begin
           mem_q[write_ptr_q] <= in_rsp_i;
@@ -105,7 +105,7 @@ module autoisa_ci_result_queue #(
 
   initial begin
     assert ((DEPTH == 1) || (DEPTH == 2) || (DEPTH == 4) || (DEPTH == 8))
-      else $error("autoisa_ci_result_queue DEPTH must be 1, 2, 4, or 8");
+    else $error("autoisa_ci_result_queue DEPTH must be 1, 2, 4, or 8");
   end
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -114,10 +114,10 @@ module autoisa_ci_result_queue #(
       stalled_rsp_q <= '0;
     end else begin
       assert (occupancy_q <= DEPTH)
-        else $error("autoisa_ci_result_queue occupancy overflow");
+      else $error("autoisa_ci_result_queue occupancy overflow");
       if (output_stalled_q && !flush_i) begin
         assert (out_valid_o && (out_rsp_o == stalled_rsp_q))
-          else $error("autoisa_ci_result_queue output changed while stalled");
+        else $error("autoisa_ci_result_queue output changed while stalled");
       end
       output_stalled_q <= out_valid_o && !out_ready_i;
       if (out_valid_o && !out_ready_i) stalled_rsp_q <= out_rsp_o;

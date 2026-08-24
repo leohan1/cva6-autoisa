@@ -1771,7 +1771,7 @@ module decoder
         instruction_o.rs2 = autoisa_rs2;
         instruction_o.rd  = autoisa_rd;
         instruction_o.op  = ariane_pkg::OFFLOAD;
-        imm_select         = NOIMM;
+        imm_select        = NOIMM;
       end
     end
 

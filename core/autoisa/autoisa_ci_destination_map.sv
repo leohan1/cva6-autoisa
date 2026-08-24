@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Tagged Host-side architectural destination ownership for AutoISA CI.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module autoisa_ci_destination_map #(
     parameter int unsigned ENTRIES = 4,
@@ -8,40 +8,40 @@ module autoisa_ci_destination_map #(
     parameter int unsigned COUNT_WIDTH = 32,
     localparam int unsigned OCC_WIDTH = $clog2(ENTRIES + 1)
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire reserve_valid_i,
+    input wire reserve_valid_i,
     output logic reserve_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_host_desc_t reserve_desc_i,
-    input  autoisa_ci_types_pkg::autoisa_ci_write_policy_e reserve_write_policy_i,
+    input autoisa_ci_types_pkg::autoisa_ci_host_desc_t reserve_desc_i,
+    input autoisa_ci_types_pkg::autoisa_ci_write_policy_e reserve_write_policy_i,
     output logic reserve_duplicate_o,
     output logic reserve_tag_busy_o,
     output logic reserve_raw_hazard_o,
     output logic reserve_waw_hazard_o,
     output logic reserve_illegal_o,
 
-    input  wire release_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] release_tag_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] release_epoch_i,
+    input wire release_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] release_tag_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] release_epoch_i,
     output logic release_hit_o,
     output logic release_stale_o,
 
-    input  wire lookup_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] lookup_tag_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] lookup_epoch_i,
+    input wire lookup_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] lookup_tag_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] lookup_epoch_i,
     output logic lookup_hit_o,
     output logic lookup_stale_o,
     output logic [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0] lookup_dst_valid_o,
     output logic [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][4:0] lookup_dst_addr_o,
     output autoisa_ci_types_pkg::autoisa_ci_write_policy_e lookup_write_policy_o,
 
-    input  wire [31:0] standard_pending_write_mask_i,
-    input  wire [STD_SRC_PORTS-1:0] std_src_valid_i,
-    input  wire [STD_SRC_PORTS-1:0][4:0] std_src_addr_i,
-    input  wire std_dst_valid_i,
-    input  wire [4:0] std_dst_addr_i,
+    input wire [31:0] standard_pending_write_mask_i,
+    input wire [STD_SRC_PORTS-1:0] std_src_valid_i,
+    input wire [STD_SRC_PORTS-1:0][4:0] std_src_addr_i,
+    input wire std_dst_valid_i,
+    input wire [4:0] std_dst_addr_i,
     output logic std_raw_hazard_o,
     output logic std_waw_hazard_o,
 
@@ -63,7 +63,7 @@ module autoisa_ci_destination_map #(
   logic [ENTRIES-1:0][AUTOISA_EPOCH_WIDTH-1:0] epoch_q;
   logic [ENTRIES-1:0][AUTOISA_MAX_DST-1:0] dst_valid_q;
   logic [ENTRIES-1:0][AUTOISA_MAX_DST-1:0][4:0] dst_addr_q;
-  autoisa_ci_write_policy_e write_policy_q [ENTRIES];
+  autoisa_ci_write_policy_e write_policy_q[ENTRIES];
 
   logic free_found, duplicate_found, tag_found, release_found, lookup_found;
   logic release_tag_found, lookup_tag_found;
@@ -94,8 +94,7 @@ module autoisa_ci_destination_map #(
       if (valid_q[i]) begin
         if (tag_q[i] == reserve_desc_i.tag) begin
           tag_found = 1'b1;
-          if (epoch_q[i] == reserve_desc_i.epoch)
-            duplicate_found = 1'b1;
+          if (epoch_q[i] == reserve_desc_i.epoch) duplicate_found = 1'b1;
         end
         if (tag_q[i] == release_tag_i) begin
           release_tag_found = 1'b1;
@@ -112,8 +111,7 @@ module autoisa_ci_destination_map #(
           end
         end
         for (int unsigned d = 0; d < AUTOISA_MAX_DST; d++) begin
-          if (dst_valid_q[i][d] && (dst_addr_q[i][d] != 5'd0))
-            busy_mask_o[dst_addr_q[i][d]] = 1'b1;
+          if (dst_valid_q[i][d] && (dst_addr_q[i][d] != 5'd0)) busy_mask_o[dst_addr_q[i][d]] = 1'b1;
         end
       end
     end
@@ -141,8 +139,7 @@ module autoisa_ci_destination_map #(
     end
     for (int unsigned d = 0; d < AUTOISA_MAX_DST; d++) begin
       if (reserve_desc_i.dst_valid[d]) begin
-        if (reserve_desc_i.dst_addr[d] == 5'd0)
-          reserve_illegal_o = 1'b1;
+        if (reserve_desc_i.dst_addr[d] == 5'd0) reserve_illegal_o = 1'b1;
         else if (busy_mask_effective[reserve_desc_i.dst_addr[d]] ||
                  standard_pending_write_mask_i[reserve_desc_i.dst_addr[d]])
           reserve_waw_hazard_o = 1'b1;
@@ -186,12 +183,10 @@ module autoisa_ci_destination_map #(
   always_comb begin
     std_raw_hazard_o = 1'b0;
     for (int unsigned s = 0; s < STD_SRC_PORTS; s++) begin
-      if (std_src_valid_i[s] && (std_src_addr_i[s] != 5'd0) &&
-          busy_mask_o[std_src_addr_i[s]])
+      if (std_src_valid_i[s] && (std_src_addr_i[s] != 5'd0) && busy_mask_o[std_src_addr_i[s]])
         std_raw_hazard_o = 1'b1;
     end
-    std_waw_hazard_o = std_dst_valid_i && (std_dst_addr_i != 5'd0) &&
-                       busy_mask_o[std_dst_addr_i];
+    std_waw_hazard_o = std_dst_valid_i && (std_dst_addr_i != 5'd0) && busy_mask_o[std_dst_addr_i];
   end
 
   assign reserve_ready_o = !flush_i &&
@@ -204,10 +199,8 @@ module autoisa_ci_destination_map #(
   always_comb begin
     occupancy_o = OCC_WIDTH'($countones(valid_q));
     occupancy_next = occupancy_o;
-    if (reserve_fire && !(release_valid_i && release_found))
-      occupancy_next = occupancy_o + 1'b1;
-    else if (!reserve_fire && release_valid_i && release_found)
-      occupancy_next = occupancy_o - 1'b1;
+    if (reserve_fire && !(release_valid_i && release_found)) occupancy_next = occupancy_o + 1'b1;
+    else if (!reserve_fire && release_valid_i && release_found) occupancy_next = occupancy_o - 1'b1;
     flush_drop_count_comb = occupancy_o;
   end
 
@@ -218,8 +211,7 @@ module autoisa_ci_destination_map #(
       epoch_q <= '0;
       dst_valid_q <= '0;
       dst_addr_q <= '0;
-      for (int unsigned i = 0; i < ENTRIES; i++)
-        write_policy_q[i] <= AUTOISA_WRITE_NONE;
+      for (int unsigned i = 0; i < ENTRIES; i++) write_policy_q[i] <= AUTOISA_WRITE_NONE;
       high_watermark_o <= '0;
       reserve_count_o <= '0;
       release_count_o <= '0;
@@ -261,25 +253,24 @@ module autoisa_ci_destination_map #(
         conflict_count_o <= conflict_count_o + 1'b1;
       end
 
-      if (occupancy_next > high_watermark_o)
-        high_watermark_o <= occupancy_next;
+      if (occupancy_next > high_watermark_o) high_watermark_o <= occupancy_next;
     end
   end
 
   initial begin
     assert ((ENTRIES == 2) || (ENTRIES == 4) || (ENTRIES == 8))
-      else $error("autoisa_ci_destination_map ENTRIES must be 2, 4, or 8");
+    else $error("autoisa_ci_destination_map ENTRIES must be 2, 4, or 8");
   end
 
   always_ff @(posedge clk_i) begin
     if (rst_ni) begin
       assert (occupancy_o <= ENTRIES)
-        else $error("destination map occupancy overflow");
+      else $error("destination map occupancy overflow");
       assert (!busy_mask_o[0])
-        else $error("destination map reserved x0");
+      else $error("destination map reserved x0");
       if (lookup_hit_o)
         assert (lookup_dst_valid_o != '0)
-          else $error("destination lookup returned empty destination set");
+        else $error("destination lookup returned empty destination set");
     end
   end
 endmodule

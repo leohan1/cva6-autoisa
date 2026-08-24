@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // CVA6 scoreboard identity, destination ownership and commit/kill boundary.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module autoisa_ci_cva6_host_adapter #(
     parameter int unsigned TRANS_ID_WIDTH = 3,
@@ -10,14 +10,14 @@ module autoisa_ci_cva6_host_adapter #(
     localparam int unsigned TRANS_IDS = 1 << TRANS_ID_WIDTH,
     localparam int unsigned OCC_WIDTH = $clog2(MAP_ENTRIES + 1)
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire issue_valid_i,
+    input wire issue_valid_i,
     output logic issue_ready_o,
-    input  wire [31:0] issue_instr_i,
-    input  wire [TRANS_ID_WIDTH-1:0] issue_trans_id_i,
+    input wire [31:0] issue_instr_i,
+    input wire [TRANS_ID_WIDTH-1:0] issue_trans_id_i,
     output logic issue_accept_o,
     output logic issue_recognized_o,
     output logic issue_illegal_o,
@@ -25,12 +25,12 @@ module autoisa_ci_cva6_host_adapter #(
     output logic issue_raw_hazard_o,
     output logic issue_waw_hazard_o,
     output logic issue_desc_valid_o,
-    input  wire issue_desc_ready_i,
+    input wire issue_desc_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_host_desc_t issue_desc_o,
 
-    input  wire commit_valid_i,
-    input  wire [TRANS_ID_WIDTH-1:0] commit_trans_id_i,
-    input  wire commit_kill_i,
+    input wire commit_valid_i,
+    input wire [TRANS_ID_WIDTH-1:0] commit_trans_id_i,
+    input wire commit_kill_i,
     output logic commit_identity_hit_o,
     output logic shell_commit_valid_o,
     output logic [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] shell_commit_tag_o,
@@ -40,11 +40,11 @@ module autoisa_ci_cva6_host_adapter #(
     output logic [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] shell_kill_epoch_o,
     output logic shell_flush_o,
 
-    input  wire shell_result_valid_i,
+    input wire shell_result_valid_i,
     output logic shell_result_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_rsp_t shell_result_i,
+    input autoisa_ci_types_pkg::autoisa_ci_rsp_t shell_result_i,
     output logic host_result_valid_o,
-    input  wire host_result_ready_i,
+    input wire host_result_ready_i,
     output logic [TRANS_ID_WIDTH-1:0] host_result_trans_id_o,
     output logic [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0] host_result_dst_valid_o,
     output logic [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][4:0] host_result_dst_addr_o,
@@ -52,11 +52,11 @@ module autoisa_ci_cva6_host_adapter #(
     output autoisa_ci_types_pkg::autoisa_ci_write_policy_e host_result_write_policy_o,
     output autoisa_ci_types_pkg::autoisa_ci_status_e host_result_status_o,
 
-    input  wire [31:0] standard_pending_write_mask_i,
-    input  wire [STD_SRC_PORTS-1:0] std_src_valid_i,
-    input  wire [STD_SRC_PORTS-1:0][4:0] std_src_addr_i,
-    input  wire std_dst_valid_i,
-    input  wire [4:0] std_dst_addr_i,
+    input wire [31:0] standard_pending_write_mask_i,
+    input wire [STD_SRC_PORTS-1:0] std_src_valid_i,
+    input wire [STD_SRC_PORTS-1:0][4:0] std_src_addr_i,
+    input wire std_dst_valid_i,
+    input wire [4:0] std_dst_addr_i,
     output logic std_raw_hazard_o,
     output logic std_waw_hazard_o,
     output logic [31:0] destination_busy_mask_o,
@@ -84,7 +84,7 @@ module autoisa_ci_cva6_host_adapter #(
 
   logic map_reserve_ready, map_duplicate, map_tag_busy, map_illegal;
   logic map_release_valid, map_release_hit, map_release_stale;
-  logic [AUTOISA_TAG_WIDTH-1:0] map_release_tag;
+  logic [  AUTOISA_TAG_WIDTH-1:0] map_release_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] map_release_epoch;
   logic map_lookup_hit, map_lookup_stale;
   logic [AUTOISA_MAX_DST-1:0] map_lookup_dst_valid;
@@ -101,16 +101,18 @@ module autoisa_ci_cva6_host_adapter #(
   end
 
   autoisa_ci_layout_decoder_v2 i_decoder (
-      .instr_i(issue_instr_i), .tag_i(issue_tag), .epoch_i(issue_epoch),
-      .valid_o(decoded_valid), .illegal_o(decoded_illegal), .desc_o(decoded_desc)
+      .instr_i(issue_instr_i),
+      .tag_i(issue_tag),
+      .epoch_i(issue_epoch),
+      .valid_o(decoded_valid),
+      .illegal_o(decoded_illegal),
+      .desc_o(decoded_desc)
   );
 
   always_comb begin
     decoded_policy = AUTOISA_WRITE_NONE;
-    if (decoded_desc.dst_valid == 2'b01)
-      decoded_policy = AUTOISA_WRITE_SCALAR;
-    else if (decoded_desc.dst_valid == 2'b11)
-      decoded_policy = AUTOISA_WRITE_PAIR_SERIAL;
+    if (decoded_desc.dst_valid == 2'b01) decoded_policy = AUTOISA_WRITE_SCALAR;
+    else if (decoded_desc.dst_valid == 2'b11) decoded_policy = AUTOISA_WRITE_PAIR_SERIAL;
   end
 
   assign issue_recognized_o = issue_valid_i && decoded_valid;
@@ -171,45 +173,61 @@ module autoisa_ci_cva6_host_adapter #(
 
   always_comb begin
     map_release_valid = 1'b0;
-    map_release_tag = '0;
+    map_release_tag   = '0;
     map_release_epoch = '0;
     if (kill_fire) begin
       map_release_valid = 1'b1;
-      map_release_tag = shell_kill_tag_o;
+      map_release_tag   = shell_kill_tag_o;
       map_release_epoch = shell_kill_epoch_o;
     end else if (result_fire) begin
       map_release_valid = 1'b1;
-      map_release_tag = shell_result_i.tag;
+      map_release_tag   = shell_result_i.tag;
       map_release_epoch = shell_result_i.epoch;
     end
   end
 
   autoisa_ci_destination_map #(
-      .ENTRIES(MAP_ENTRIES), .STD_SRC_PORTS(STD_SRC_PORTS),
+      .ENTRIES(MAP_ENTRIES),
+      .STD_SRC_PORTS(STD_SRC_PORTS),
       .COUNT_WIDTH(COUNT_WIDTH)
   ) i_destination_map (
-      .clk_i(clk_i), .rst_ni(rst_ni), .flush_i(flush_i),
-      .reserve_valid_i(issue_accepted_fire), .reserve_ready_o(map_reserve_ready),
-      .reserve_desc_i(decoded_desc), .reserve_write_policy_i(decoded_policy),
-      .reserve_duplicate_o(map_duplicate), .reserve_tag_busy_o(map_tag_busy),
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .flush_i(flush_i),
+      .reserve_valid_i(issue_accepted_fire),
+      .reserve_ready_o(map_reserve_ready),
+      .reserve_desc_i(decoded_desc),
+      .reserve_write_policy_i(decoded_policy),
+      .reserve_duplicate_o(map_duplicate),
+      .reserve_tag_busy_o(map_tag_busy),
       .reserve_raw_hazard_o(issue_raw_hazard_o),
-      .reserve_waw_hazard_o(issue_waw_hazard_o), .reserve_illegal_o(map_illegal),
-      .release_valid_i(map_release_valid), .release_tag_i(map_release_tag),
-      .release_epoch_i(map_release_epoch), .release_hit_o(map_release_hit),
+      .reserve_waw_hazard_o(issue_waw_hazard_o),
+      .reserve_illegal_o(map_illegal),
+      .release_valid_i(map_release_valid),
+      .release_tag_i(map_release_tag),
+      .release_epoch_i(map_release_epoch),
+      .release_hit_o(map_release_hit),
       .release_stale_o(map_release_stale),
-      .lookup_valid_i(shell_result_valid_i), .lookup_tag_i(shell_result_i.tag),
-      .lookup_epoch_i(shell_result_i.epoch), .lookup_hit_o(map_lookup_hit),
-      .lookup_stale_o(map_lookup_stale), .lookup_dst_valid_o(map_lookup_dst_valid),
+      .lookup_valid_i(shell_result_valid_i),
+      .lookup_tag_i(shell_result_i.tag),
+      .lookup_epoch_i(shell_result_i.epoch),
+      .lookup_hit_o(map_lookup_hit),
+      .lookup_stale_o(map_lookup_stale),
+      .lookup_dst_valid_o(map_lookup_dst_valid),
       .lookup_dst_addr_o(map_lookup_dst_addr),
       .lookup_write_policy_o(map_lookup_policy),
       .standard_pending_write_mask_i(standard_pending_write_mask_i),
-      .std_src_valid_i(std_src_valid_i), .std_src_addr_i(std_src_addr_i),
-      .std_dst_valid_i(std_dst_valid_i), .std_dst_addr_i(std_dst_addr_i),
-      .std_raw_hazard_o(std_raw_hazard_o), .std_waw_hazard_o(std_waw_hazard_o),
+      .std_src_valid_i(std_src_valid_i),
+      .std_src_addr_i(std_src_addr_i),
+      .std_dst_valid_i(std_dst_valid_i),
+      .std_dst_addr_i(std_dst_addr_i),
+      .std_raw_hazard_o(std_raw_hazard_o),
+      .std_waw_hazard_o(std_waw_hazard_o),
       .busy_mask_o(destination_busy_mask_o),
       .occupancy_o(destination_occupancy_o),
       .high_watermark_o(destination_high_watermark_o),
-      .reserve_count_o(unused_reserve_count), .release_count_o(unused_release_count),
+      .reserve_count_o(unused_reserve_count),
+      .release_count_o(unused_release_count),
       .conflict_count_o(unused_conflict_count),
       .stale_release_count_o(unused_stale_release_count),
       .flush_drop_count_o(unused_flush_drop_count)
@@ -225,8 +243,7 @@ module autoisa_ci_cva6_host_adapter #(
       unknown_commit_count_o <= '0;
     end else if (flush_i) begin
       live_q <= '0;
-      for (int unsigned i = 0; i < TRANS_IDS; i++)
-        epoch_q[i] <= epoch_q[i] + 1'b1;
+      for (int unsigned i = 0; i < TRANS_IDS; i++) epoch_q[i] <= epoch_q[i] + 1'b1;
     end else begin
       if (issue_accepted_fire) begin
         live_q[issue_trans_id_i] <= 1'b1;
@@ -236,35 +253,33 @@ module autoisa_ci_cva6_host_adapter #(
       end
 
       if (kill_fire) begin
-        live_q[commit_trans_id_i] <= 1'b0;
+        live_q[commit_trans_id_i]  <= 1'b0;
         epoch_q[commit_trans_id_i] <= epoch_q[commit_trans_id_i] + 1'b1;
       end else if (result_fire && result_tag_in_range) begin
-        live_q[result_trans_id] <= 1'b0;
+        live_q[result_trans_id]  <= 1'b0;
         epoch_q[result_trans_id] <= epoch_q[result_trans_id] + 1'b1;
       end
-      if (stale_result_fire)
-        stale_result_drop_count_o <= stale_result_drop_count_o + 1'b1;
-      if (commit_valid_i && !commit_live)
-        unknown_commit_count_o <= unknown_commit_count_o + 1'b1;
+      if (stale_result_fire) stale_result_drop_count_o <= stale_result_drop_count_o + 1'b1;
+      if (commit_valid_i && !commit_live) unknown_commit_count_o <= unknown_commit_count_o + 1'b1;
     end
   end
 
   initial begin
     assert (TRANS_ID_WIDTH <= AUTOISA_TAG_WIDTH)
-      else $error("CVA6 trans_id must fit canonical AutoISA tag");
+    else $error("CVA6 trans_id must fit canonical AutoISA tag");
     assert (MAP_ENTRIES <= TRANS_IDS)
-      else $error("destination map cannot exceed CVA6 identity slots");
+    else $error("destination map cannot exceed CVA6 identity slots");
   end
 
   always_ff @(posedge clk_i) begin
     if (rst_ni) begin
       assert (!(shell_commit_valid_o && shell_kill_valid_o))
-        else $error("commit and kill asserted for one identity");
+      else $error("commit and kill asserted for one identity");
       if (host_result_valid_o && !host_result_ready_i)
         assert (!shell_result_ready_o)
-          else $error("host result backpressure not propagated");
+        else $error("host result backpressure not propagated");
       assert (!(map_release_valid && !map_release_hit))
-        else $error("terminal event failed to release destination ownership");
+      else $error("terminal event failed to release destination ownership");
     end
   end
 endmodule

@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
 // Convert an AutoISA scalar/pair Host result into CVA6-style scalar WB beats.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_pair_writeback_serializer #(
     parameter int unsigned TRANS_ID_WIDTH = 3,
     parameter int unsigned COUNT_WIDTH = 32
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire result_valid_i,
+    input wire result_valid_i,
     output logic result_ready_o,
-    input  wire [TRANS_ID_WIDTH-1:0] result_trans_id_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0] result_dst_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][4:0] result_dst_addr_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][31:0] result_data_i,
-    input  wire autoisa_ci_types_pkg::autoisa_ci_write_policy_e result_write_policy_i,
-    input  wire autoisa_ci_types_pkg::autoisa_ci_status_e result_status_i,
+    input wire [TRANS_ID_WIDTH-1:0] result_trans_id_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0] result_dst_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][4:0] result_dst_addr_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_MAX_DST-1:0][31:0] result_data_i,
+    input wire autoisa_ci_types_pkg::autoisa_ci_write_policy_e result_write_policy_i,
+    input wire autoisa_ci_types_pkg::autoisa_ci_status_e result_status_i,
 
     output logic wb_valid_o,
-    input  wire wb_ready_i,
+    input wire wb_ready_i,
     output logic [TRANS_ID_WIDTH-1:0] wb_trans_id_o,
     output logic [4:0] wb_addr_o,
     output logic [31:0] wb_data_o,
@@ -69,8 +69,7 @@ module autoisa_ci_pair_writeback_serializer #(
     end else begin
       if (wb_fire) begin
         wb_beat_count_o <= wb_beat_count_o + 1'b1;
-        if (pair_result && !second_q)
-          second_q <= 1'b1;
+        if (pair_result && !second_q) second_q <= 1'b1;
         else begin
           second_q <= 1'b0;
           result_count_o <= result_count_o + 1'b1;
@@ -100,7 +99,7 @@ module autoisa_ci_pair_writeback_serializer #(
                 wb_addr_o == stalled_addr_q && wb_data_o == stalled_data_q &&
                 wb_we_o == stalled_we_q && wb_last_o == stalled_last_q &&
                 wb_status_o == stalled_status_q)
-          else $error("AutoISA scalar WB beat changed while stalled");
+        else $error("AutoISA scalar WB beat changed while stalled");
       stalled_q <= wb_valid_o && !wb_ready_i;
       stalled_id_q <= wb_trans_id_o;
       stalled_addr_q <= wb_addr_o;

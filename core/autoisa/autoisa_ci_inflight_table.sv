@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Multi-entry transaction tracking for the AutoISA compute-only CI path.
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 `default_nettype none
 
 module autoisa_ci_inflight_table #(
@@ -9,40 +9,40 @@ module autoisa_ci_inflight_table #(
     parameter int unsigned INDEX_WIDTH = (DEPTH > 1) ? $clog2(DEPTH) : 1,
     parameter int unsigned OCC_WIDTH   = $clog2(DEPTH + 1)
 ) (
-    input  wire clk_i,
-    input  wire rst_ni,
-    input  wire flush_i,
+    input wire clk_i,
+    input wire rst_ni,
+    input wire flush_i,
 
-    input  wire alloc_valid_i,
+    input wire alloc_valid_i,
     output logic alloc_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_req_t alloc_req_i,
+    input autoisa_ci_types_pkg::autoisa_ci_req_t alloc_req_i,
     output logic alloc_duplicate_o,
 
     output logic dispatch_valid_o,
-    input  wire dispatch_ready_i,
+    input wire dispatch_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_req_t dispatch_req_o,
 
-    input  wire complete_valid_i,
+    input wire complete_valid_i,
     output logic complete_ready_o,
-    input  autoisa_ci_types_pkg::autoisa_ci_rsp_t complete_rsp_i,
+    input autoisa_ci_types_pkg::autoisa_ci_rsp_t complete_rsp_i,
 
-    input  wire commit_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] commit_tag_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] commit_epoch_i,
+    input wire commit_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] commit_tag_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] commit_epoch_i,
 
-    input  wire kill_valid_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] kill_tag_i,
-    input  wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] kill_epoch_i,
-    input  wire kill_wait_completion_i,
+    input wire kill_valid_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_TAG_WIDTH-1:0] kill_tag_i,
+    input wire [autoisa_ci_types_pkg::AUTOISA_EPOCH_WIDTH-1:0] kill_epoch_i,
+    input wire kill_wait_completion_i,
     output logic kill_hit_o,
     output logic kill_dispatched_o,
 
     output logic retire_valid_o,
-    input  wire retire_ready_i,
+    input wire retire_ready_i,
     output autoisa_ci_types_pkg::autoisa_ci_rsp_t retire_rsp_o,
 
-    output logic [OCC_WIDTH-1:0] occupancy_o,
-    output logic [OCC_WIDTH-1:0] high_watermark_o,
+    output logic [  OCC_WIDTH-1:0] occupancy_o,
+    output logic [  OCC_WIDTH-1:0] high_watermark_o,
     output logic [COUNT_WIDTH-1:0] allocated_count_o,
     output logic [COUNT_WIDTH-1:0] retired_count_o,
     output logic [COUNT_WIDTH-1:0] killed_count_o,
@@ -57,12 +57,12 @@ module autoisa_ci_inflight_table #(
   // A dispatched kill retains its identity until the late engine response is
   // absorbed. This prevents same-epoch tag reuse from creating an ABA match.
   logic [DEPTH-1:0] killed_q, killed_d;
-  autoisa_ci_req_t req_q [0:DEPTH-1];
-  autoisa_ci_req_t req_d [0:DEPTH-1];
-  autoisa_ci_rsp_t rsp_q [0:DEPTH-1];
-  autoisa_ci_rsp_t rsp_d [0:DEPTH-1];
-  logic [COUNT_WIDTH-1:0] age_q [0:DEPTH-1];
-  logic [COUNT_WIDTH-1:0] age_d [0:DEPTH-1];
+  autoisa_ci_req_t req_q[0:DEPTH-1];
+  autoisa_ci_req_t req_d[0:DEPTH-1];
+  autoisa_ci_rsp_t rsp_q[0:DEPTH-1];
+  autoisa_ci_rsp_t rsp_d[0:DEPTH-1];
+  logic [COUNT_WIDTH-1:0] age_q[0:DEPTH-1];
+  logic [COUNT_WIDTH-1:0] age_d[0:DEPTH-1];
   logic [COUNT_WIDTH-1:0] next_age_q, next_age_d;
 
   logic free_found, duplicate_found;
@@ -77,7 +77,7 @@ module autoisa_ci_inflight_table #(
   logic [OCC_WIDTH-1:0] occupancy_next;
   logic [OCC_WIDTH-1:0] flush_kill_count;
   logic alloc_fire, dispatch_fire, complete_fire, retire_fire;
-  logic completion_killed;
+  logic   completion_killed;
 
   integer scan_i;
   integer next_i;
@@ -103,8 +103,7 @@ module autoisa_ci_inflight_table #(
 
     for (scan_i = 0; scan_i < DEPTH; scan_i = scan_i + 1) begin
       if (valid_q[scan_i]) occupancy_o = occupancy_o + 1'b1;
-      if (valid_q[scan_i] && !killed_q[scan_i])
-        flush_kill_count = flush_kill_count + 1'b1;
+      if (valid_q[scan_i] && !killed_q[scan_i]) flush_kill_count = flush_kill_count + 1'b1;
       if (!valid_q[scan_i] && !free_found) begin
         free_found = 1'b1;
         free_index = INDEX_WIDTH'(scan_i);
@@ -117,7 +116,7 @@ module autoisa_ci_inflight_table #(
           (!dispatch_found || (age_q[scan_i] < dispatch_age))) begin
         dispatch_found = 1'b1;
         dispatch_index = INDEX_WIDTH'(scan_i);
-        dispatch_age = age_q[scan_i];
+        dispatch_age   = age_q[scan_i];
       end
       if (valid_q[scan_i] && dispatched_q[scan_i] && !completed_q[scan_i] &&
           (req_q[scan_i].tag == complete_rsp_i.tag) &&
@@ -141,7 +140,7 @@ module autoisa_ci_inflight_table #(
           (!retire_found || (age_q[scan_i] < retire_age))) begin
         retire_found = 1'b1;
         retire_index = INDEX_WIDTH'(scan_i);
-        retire_age = age_q[scan_i];
+        retire_age   = age_q[scan_i];
       end
     end
 
@@ -175,8 +174,7 @@ module autoisa_ci_inflight_table #(
                                (kill_index == completion_index)));
 
   assign kill_hit_o = kill_valid_i && kill_found;
-  assign kill_dispatched_o = kill_valid_i && kill_found &&
-                             dispatched_q[kill_index];
+  assign kill_dispatched_o = kill_valid_i && kill_found && dispatched_q[kill_index];
 
   assign retire_valid_o = !flush_i && retire_found &&
                           !(kill_valid_i && kill_found &&
@@ -199,8 +197,7 @@ module autoisa_ci_inflight_table #(
       age_d[next_i] = age_q[next_i];
     end
 
-    if (dispatch_fire)
-      dispatched_d[dispatch_index] = 1'b1;
+    if (dispatch_fire) dispatched_d[dispatch_index] = 1'b1;
 
     if (complete_fire && completion_found) begin
       if (completion_killed) begin
@@ -213,8 +210,7 @@ module autoisa_ci_inflight_table #(
       end
     end
 
-    if (commit_valid_i && commit_found)
-      committed_d[commit_index] = 1'b1;
+    if (commit_valid_i && commit_found) committed_d[commit_index] = 1'b1;
 
     // Kill has priority over completion, commit, dispatch and retirement.
     if (kill_valid_i && kill_found) begin
@@ -224,7 +220,7 @@ module autoisa_ci_inflight_table #(
           !completed_q[kill_index] &&
           !(complete_fire && completion_found &&
             (completion_index == kill_index))) begin
-        valid_d[kill_index] = 1'b1;
+        valid_d[kill_index]  = 1'b1;
         killed_d[kill_index] = 1'b1;
       end else begin
         valid_d[kill_index] = 1'b0;
@@ -233,8 +229,7 @@ module autoisa_ci_inflight_table #(
       end
       completed_d[kill_index] = 1'b0;
       committed_d[kill_index] = 1'b0;
-      if (retire_lock_q && (retire_lock_index_q == kill_index))
-        retire_lock_d = 1'b0;
+      if (retire_lock_q && (retire_lock_index_q == kill_index)) retire_lock_d = 1'b0;
     end
 
     if (retire_fire) begin
@@ -265,7 +260,7 @@ module autoisa_ci_inflight_table #(
 
     occupancy_next = '0;
     for (next_i = 0; next_i < DEPTH; next_i = next_i + 1)
-      if (valid_d[next_i]) occupancy_next = occupancy_next + 1'b1;
+    if (valid_d[next_i]) occupancy_next = occupancy_next + 1'b1;
   end
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -292,8 +287,7 @@ module autoisa_ci_inflight_table #(
       if (alloc_fire) allocated_count_o <= allocated_count_o + 1'b1;
       if (retire_fire) retired_count_o <= retired_count_o + 1'b1;
       if (flush_i) killed_count_o <= killed_count_o + flush_kill_count;
-      else if (kill_valid_i && kill_found)
-        killed_count_o <= killed_count_o + 1'b1;
+      else if (kill_valid_i && kill_found) killed_count_o <= killed_count_o + 1'b1;
       if (complete_fire && (!completion_found || completion_killed))
         orphan_completion_count_o <= orphan_completion_count_o + 1'b1;
 
@@ -316,8 +310,7 @@ module autoisa_ci_inflight_table #(
         next_age_q <= next_age_d;
         retire_lock_q <= retire_lock_d;
         retire_lock_index_q <= retire_lock_index_d;
-        if (occupancy_next > high_watermark_o)
-          high_watermark_o <= occupancy_next;
+        if (occupancy_next > high_watermark_o) high_watermark_o <= occupancy_next;
         for (seq_i = 0; seq_i < DEPTH; seq_i = seq_i + 1) begin
           req_q[seq_i] <= req_d[seq_i];
           rsp_q[seq_i] <= rsp_d[seq_i];
@@ -330,15 +323,15 @@ module autoisa_ci_inflight_table #(
 `ifndef SYNTHESIS
   initial begin
     assert ((DEPTH == 2) || (DEPTH == 4) || (DEPTH == 8))
-      else $error("autoisa_ci_inflight_table DEPTH must be 2, 4, or 8");
+    else $error("autoisa_ci_inflight_table DEPTH must be 2, 4, or 8");
   end
 
   always_ff @(posedge clk_i) begin
     if (rst_ni && !flush_i) begin
       assert (occupancy_o <= DEPTH)
-        else $error("autoisa_ci_inflight_table occupancy overflow");
+      else $error("autoisa_ci_inflight_table occupancy overflow");
       assert (!(alloc_fire && duplicate_found))
-        else $error("autoisa_ci_inflight_table accepted duplicate identity");
+      else $error("autoisa_ci_inflight_table accepted duplicate identity");
     end
   end
 `endif

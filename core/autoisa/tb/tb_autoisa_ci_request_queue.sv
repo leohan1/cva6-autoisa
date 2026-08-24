@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-`timescale 1ns/1ps
+`timescale 1ns / 1ps
 
 module tb_autoisa_ci_request_queue;
   import autoisa_ci_types_pkg::*;
@@ -23,44 +23,95 @@ module tb_autoisa_ci_request_queue;
 
   always #5 clk = ~clk;
 
-  autoisa_ci_request_queue #(.DEPTH(DEPTH)) dut (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(in_valid), .in_ready_o(in_ready), .in_req_i(in_req),
-      .identity_query_valid_i(1'b0), .identity_query_tag_i('0),
-      .identity_query_epoch_i('0), .identity_query_match_o(),
-      .out_valid_o(out_valid), .out_ready_i(out_ready), .out_req_o(out_req),
-      .occupancy_o(occupancy), .high_watermark_o(high_watermark),
-      .enqueue_count_o(enqueue_count), .dequeue_count_o(dequeue_count),
+  autoisa_ci_request_queue #(
+      .DEPTH(DEPTH)
+  ) dut (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(in_valid),
+      .in_ready_o(in_ready),
+      .in_req_i(in_req),
+      .identity_query_valid_i(1'b0),
+      .identity_query_tag_i('0),
+      .identity_query_epoch_i('0),
+      .identity_query_match_o(),
+      .out_valid_o(out_valid),
+      .out_ready_i(out_ready),
+      .out_req_o(out_req),
+      .occupancy_o(occupancy),
+      .high_watermark_o(high_watermark),
+      .enqueue_count_o(enqueue_count),
+      .dequeue_count_o(dequeue_count),
       .full_stall_count_o(full_stall_count)
   );
 
   // Elaboration sentinels for every required queue depth.
-  autoisa_ci_request_queue #(.DEPTH(1)) i_depth_1 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(d1_in_valid), .in_ready_o(d1_in_ready), .in_req_i(d1_in_req),
-      .identity_query_valid_i(1'b0), .identity_query_tag_i('0),
-      .identity_query_epoch_i('0), .identity_query_match_o(),
-      .out_valid_o(d1_out_valid), .out_ready_i(d1_out_ready), .out_req_o(d1_out_req),
-      .occupancy_o(d1_occupancy), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o()
+  autoisa_ci_request_queue #(
+      .DEPTH(1)
+  ) i_depth_1 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(d1_in_valid),
+      .in_ready_o(d1_in_ready),
+      .in_req_i(d1_in_req),
+      .identity_query_valid_i(1'b0),
+      .identity_query_tag_i('0),
+      .identity_query_epoch_i('0),
+      .identity_query_match_o(),
+      .out_valid_o(d1_out_valid),
+      .out_ready_i(d1_out_ready),
+      .out_req_o(d1_out_req),
+      .occupancy_o(d1_occupancy),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o()
   );
-  autoisa_ci_request_queue #(.DEPTH(2)) i_depth_2 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(1'b0), .in_ready_o(), .in_req_i('0),
-      .identity_query_valid_i(1'b0), .identity_query_tag_i('0),
-      .identity_query_epoch_i('0), .identity_query_match_o(),
-      .out_valid_o(), .out_ready_i(1'b0), .out_req_o(),
-      .occupancy_o(), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o()
+  autoisa_ci_request_queue #(
+      .DEPTH(2)
+  ) i_depth_2 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(1'b0),
+      .in_ready_o(),
+      .in_req_i('0),
+      .identity_query_valid_i(1'b0),
+      .identity_query_tag_i('0),
+      .identity_query_epoch_i('0),
+      .identity_query_match_o(),
+      .out_valid_o(),
+      .out_ready_i(1'b0),
+      .out_req_o(),
+      .occupancy_o(),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o()
   );
-  autoisa_ci_request_queue #(.DEPTH(8)) i_depth_8 (
-      .clk_i(clk), .rst_ni(rst_n), .flush_i(flush),
-      .in_valid_i(1'b0), .in_ready_o(), .in_req_i('0),
-      .identity_query_valid_i(1'b0), .identity_query_tag_i('0),
-      .identity_query_epoch_i('0), .identity_query_match_o(),
-      .out_valid_o(), .out_ready_i(1'b0), .out_req_o(),
-      .occupancy_o(), .high_watermark_o(), .enqueue_count_o(),
-      .dequeue_count_o(), .full_stall_count_o()
+  autoisa_ci_request_queue #(
+      .DEPTH(8)
+  ) i_depth_8 (
+      .clk_i(clk),
+      .rst_ni(rst_n),
+      .flush_i(flush),
+      .in_valid_i(1'b0),
+      .in_ready_o(),
+      .in_req_i('0),
+      .identity_query_valid_i(1'b0),
+      .identity_query_tag_i('0),
+      .identity_query_epoch_i('0),
+      .identity_query_match_o(),
+      .out_valid_o(),
+      .out_ready_i(1'b0),
+      .out_req_o(),
+      .occupancy_o(),
+      .high_watermark_o(),
+      .enqueue_count_o(),
+      .dequeue_count_o(),
+      .full_stall_count_o()
   );
 
   task automatic push(input logic [3:0] tag);
@@ -110,21 +161,23 @@ module tb_autoisa_ci_request_queue;
     d1_in_valid = 1'b1;
     #1;
     if (!d1_in_ready) $fatal(1, "depth-1 queue rejected basic enqueue");
-    @(posedge clk); @(negedge clk); d1_in_valid = 1'b0;
+    @(posedge clk);
+    @(negedge clk);
+    d1_in_valid = 1'b0;
     if (!d1_out_valid || !d1_occupancy || (d1_out_req.tag != 4'd13))
       $fatal(1, "depth-1 queue lost stored request");
     d1_out_ready = 1'b1;
-    @(posedge clk); @(negedge clk); d1_out_ready = 1'b0;
-    if (d1_out_valid || d1_occupancy)
-      $fatal(1, "depth-1 queue did not dequeue");
+    @(posedge clk);
+    @(negedge clk);
+    d1_out_ready = 1'b0;
+    if (d1_out_valid || d1_occupancy) $fatal(1, "depth-1 queue did not dequeue");
 
     // Fill the queue and establish its high-watermark.
     push(4'd1);
     push(4'd2);
     push(4'd3);
     push(4'd4);
-    if ((occupancy != 4) || (high_watermark != 4) || in_ready)
-      $fatal(1, "full-state check failed");
+    if ((occupancy != 4) || (high_watermark != 4) || in_ready) $fatal(1, "full-state check failed");
 
     // Q01: REQ_DEPTH+2 continuous attempts reach full and backpressure both
     // excess requests.
@@ -149,7 +202,7 @@ module tb_autoisa_ci_request_queue;
       $fatal(1, "simultaneous full pop/push failed");
     @(posedge clk);
     @(negedge clk);
-    in_valid = 1'b0;
+    in_valid  = 1'b0;
     out_ready = 1'b0;
     if (occupancy != 4) $fatal(1, "occupancy changed on replacement");
 
@@ -166,11 +219,10 @@ module tb_autoisa_ci_request_queue;
     in_valid = 1'b1;
     out_ready = 1'b1;
     #1;
-    if (!out_valid || !in_ready || (out_req.tag != 4'd6))
-      $fatal(1, "empty bypass failed");
+    if (!out_valid || !in_ready || (out_req.tag != 4'd6)) $fatal(1, "empty bypass failed");
     @(posedge clk);
     @(negedge clk);
-    in_valid = 1'b0;
+    in_valid  = 1'b0;
     out_ready = 1'b0;
     if (occupancy != 0) $fatal(1, "bypass changed occupancy");
 
@@ -188,12 +240,15 @@ module tb_autoisa_ci_request_queue;
     @(posedge clk);
     @(negedge clk);
     flush = 1'b0;
-    if ((occupancy != 0) || (high_watermark != 0) || out_valid)
-      $fatal(1, "flush failed");
-    if ((enqueue_count != 519) || (dequeue_count != 518) ||
-        (full_stall_count != 2))
-      $fatal(1, "counter mismatch enq=%0d deq=%0d stall=%0d",
-             enqueue_count, dequeue_count, full_stall_count);
+    if ((occupancy != 0) || (high_watermark != 0) || out_valid) $fatal(1, "flush failed");
+    if ((enqueue_count != 519) || (dequeue_count != 518) || (full_stall_count != 2))
+      $fatal(
+          1,
+          "counter mismatch enq=%0d deq=%0d stall=%0d",
+          enqueue_count,
+          dequeue_count,
+          full_stall_count
+      );
 
     $display("PASS: autoisa_ci_request_queue");
     $finish;
