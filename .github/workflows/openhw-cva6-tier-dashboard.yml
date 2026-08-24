@@ -64,7 +64,7 @@ jobs:
           cp -r /tmp/tier-data /tmp/dash-site/data
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: /tmp/dash-site
 
@@ -92,7 +92,7 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   persist-tier-data:
     name: Persist Tier Dashboard Data
