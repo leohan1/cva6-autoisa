@@ -134,18 +134,14 @@ int __attribute__((weak)) main(int argc, char** argv)
   return -1;
 }
 
-static void init_tls()
+static void init_hart_local()
 {
-  extern char _tdata_begin, _tdata_end, _tbss_end;
-  size_t tdata_size = &_tdata_end - &_tdata_begin;
-  memcpy(thread_pointer, &_tdata_begin, tdata_size);
-  size_t tbss_size = &_tbss_end - &_tdata_end;
-  memset(thread_pointer + tdata_size, 0, tbss_size);
+  memset(thread_pointer, 0, sizeof(hart_local_t));
 }
 
 void _init(int cid, int nc)
 {
-  init_tls();
+  init_hart_local();
   thread_entry(cid, nc);
 
   // only single-threaded programs should ever get here.
@@ -177,15 +173,15 @@ int puts(const char *s)
 int putchar(int ch)
 {
 #if !NOPRINT
-  static __thread char buf[64] __attribute__((aligned(64)));
-  static __thread int buflen = 0;
+  char *buf = hart_local()->print_buf;
+  int *buflen = &hart_local()->print_buflen;
 
-  buf[buflen++] = ch;
+  buf[(*buflen)++] = ch;
 
-  if (ch == '\n' || buflen == sizeof(buf))
+  if (ch == '\n' || *buflen == sizeof(hart_local()->print_buf))
   {
-    syscall(SYS_write, 1, (uintptr_t)buf, buflen);
-    buflen = 0;
+    syscall(SYS_write, 1, (uintptr_t)buf, *buflen);
+    *buflen = 0;
   }
 #endif
 
