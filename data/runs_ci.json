@@ -1,5 +1,26 @@
 [
   {
+    "id": 32705305125,
+    "source": "github-actions",
+    "simulator": "verilator",
+    "run_number": 6,
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/32705305125",
+    "head_branch": "autoisa/program-coverage-v1",
+    "head_sha": "becec041",
+    "event": "push",
+    "created_at": "2026-08-24T08:14:35Z",
+    "updated_at": "2026-08-24T08:16:16Z",
+    "run_started_at": "2026-08-24T08:14:35Z",
+    "duration_seconds": 101,
+    "total_jobs": 0,
+    "passed_jobs": 0,
+    "failed_jobs": 0,
+    "skipped_jobs": 0,
+    "jobs": []
+  },
+  {
     "id": 32625255257,
     "source": "github-actions",
     "simulator": "verilator",
