@@ -17,7 +17,8 @@ permissions:
   contents: read
 
 jobs:
-  g3-minimal-elf:
+  g3-program-elf:
+    # Keep the established check name because branch protection requires it.
     name: AutoISA G3 / Minimal ELF
     # Never execute untrusted fork code on the licensed self-hosted machine.
     # A maintainer must mirror an external contribution to a same-repository
@@ -71,6 +72,6 @@ jobs:
           path: |
             ci/autoisa/build/g3_gate_summary.json
             ci/autoisa/build/elf_*.log
-            ci/autoisa/build/software/minimal_d0.elf
-            ci/autoisa/build/software/minimal_d0.dump
+            ci/autoisa/build/software/program_coverage.elf
+            ci/autoisa/build/software/program_coverage.dump
             trace_hart_0.log

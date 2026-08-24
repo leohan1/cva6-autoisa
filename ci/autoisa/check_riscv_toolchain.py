@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Locate a bare-metal RISC-V toolchain and build the minimal AutoISA D0 ELF."""
+"""Locate a bare-metal RISC-V toolchain and build an AutoISA program ELF."""
 from __future__ import annotations
 
 import argparse
@@ -12,7 +12,20 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 LOCAL_PATTERN = "xpack-riscv-none-elf-gcc-*"
 PREFIXES = ("riscv-none-elf", "riscv64-unknown-elf")
-EXPECTED_D0 = (0x007302DB).to_bytes(4, "little")
+PROGRAM_ENCODINGS = {
+    "minimal_d0": {
+        "D0": 0x007302DB,
+    },
+    "program_coverage": {
+        "L0/D0": 0x000002DB,
+        "L0/D8": 0x107306DB,
+        "L0/D9": 0x1273075B,
+        "L0/D10": 0x147307DB,
+        "L0/D11": 0x167308DB,
+        "L7/D7": 0x0073380B,
+        "L0/D12 unsupported": 0x18730ADB,
+    },
+}
 
 
 def executable(bin_dir: Path, name: str) -> Path | None:
@@ -77,6 +90,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--toolchain", type=Path,
                         help="Toolchain root or bin directory; auto-detected by default")
+    parser.add_argument("--program", choices=sorted(PROGRAM_ENCODINGS),
+                        default="minimal_d0")
     parser.add_argument("--build-dir", type=Path,
                         default=ROOT / "ci/autoisa/build/software")
     args = parser.parse_args()
@@ -89,12 +104,12 @@ def main() -> int:
 
     build_dir = args.build_dir.resolve()
     build_dir.mkdir(parents=True, exist_ok=True)
-    source = ROOT / "tests/autoisa/software/minimal_d0.S"
-    linker = ROOT / "tests/autoisa/software/minimal_d0.ld"
-    elf = build_dir / "minimal_d0.elf"
-    binary = build_dir / "minimal_d0.bin"
-    hex_image = build_dir / "minimal_d0.hex"
-    disassembly = build_dir / "minimal_d0.dump"
+    source = ROOT / f"tests/autoisa/software/{args.program}.S"
+    linker = ROOT / f"tests/autoisa/software/{args.program}.ld"
+    elf = build_dir / f"{args.program}.elf"
+    binary = build_dir / f"{args.program}.bin"
+    hex_image = build_dir / f"{args.program}.hex"
+    disassembly = build_dir / f"{args.program}.dump"
 
     version = run([str(tools["gcc"]), "--version"], capture=True).splitlines()[0]
     run([
@@ -113,9 +128,14 @@ def main() -> int:
         print("ERROR: output is not an ELF32 RISC-V image", file=sys.stderr)
         return 1
     image = binary.read_bytes()
-    if EXPECTED_D0 not in image:
-        print("ERROR: minimal ELF does not contain expected D0 encoding 0x007302db", file=sys.stderr)
-        return 1
+    for label, encoding in PROGRAM_ENCODINGS[args.program].items():
+        if encoding.to_bytes(4, "little") not in image:
+            print(
+                f"ERROR: {args.program} ELF does not contain expected {label} "
+                f"encoding 0x{encoding:08x}",
+                file=sys.stderr,
+            )
+            return 1
     if not image:
         print("ERROR: empty .text.init image", file=sys.stderr)
         return 1
@@ -128,7 +148,7 @@ def main() -> int:
     print(f"PASS: {version}")
     print("PASS: rv32imac_zicsr/ilp32 compile and link")
     print("PASS: ELF32 RISC-V header")
-    print("PASS: D0 encoding 0x007302db present")
+    print(f"PASS: {args.program} required AutoISA encodings present")
     print(f"ELF: {elf}")
     print(f"HEX: {hex_image}")
     print(f"DISASSEMBLY: {disassembly}")

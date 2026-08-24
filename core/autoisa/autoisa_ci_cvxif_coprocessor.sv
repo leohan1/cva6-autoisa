@@ -32,11 +32,13 @@ module autoisa_ci_cvxif_coprocessor #(
   logic shell_req_valid, shell_req_ready, shell_req_fire;
   logic shell_result_valid, shell_result_fire;
   logic [TRANS_IDS-1:0] live_q;
+  logic [TRANS_IDS-1:0] committed_q;
   logic [TRANS_IDS-1:0][AUTOISA_EPOCH_WIDTH-1:0] epoch_q;
   logic [TRANS_IDS-1:0][4:0] rd_q;
   hartid_t hartid_q [TRANS_IDS];
   logic [TRANS_ID_WIDTH-1:0] issue_id, commit_id, result_id;
   logic commit_valid, kill_valid;
+  logic commit_matches_issue, commit_live;
   logic [AUTOISA_TAG_WIDTH-1:0] commit_tag;
   logic [AUTOISA_EPOCH_WIDTH-1:0] commit_epoch;
 
@@ -118,10 +120,13 @@ module autoisa_ci_cvxif_coprocessor #(
 
   assign commit_tag = {{(AUTOISA_TAG_WIDTH-TRANS_ID_WIDTH){1'b0}}, commit_id};
   assign commit_epoch = epoch_q[commit_id];
+  assign commit_matches_issue = shell_req_fire && (issue_id == commit_id);
+  assign commit_live = live_q[commit_id] || commit_matches_issue;
   assign commit_valid = cvxif_req_i.commit_valid &&
-                        !cvxif_req_i.commit.commit_kill;
+                        !cvxif_req_i.commit.commit_kill && commit_live &&
+                        (!committed_q[commit_id] || commit_matches_issue);
   assign kill_valid = cvxif_req_i.commit_valid &&
-                      cvxif_req_i.commit.commit_kill;
+                      cvxif_req_i.commit.commit_kill && commit_live;
   assign shell_result_fire = shell_result_valid && cvxif_req_i.result_ready;
 
   autoisa_ci_concurrent_shell #(
@@ -152,6 +157,7 @@ module autoisa_ci_cvxif_coprocessor #(
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       live_q <= '0;
+      committed_q <= '0;
       epoch_q <= '0;
       rd_q <= '0;
       for (int unsigned i = 0; i < TRANS_IDS; i++)
@@ -159,14 +165,19 @@ module autoisa_ci_cvxif_coprocessor #(
     end else begin
       if (shell_req_fire) begin
         live_q[issue_id] <= 1'b1;
+        committed_q[issue_id] <= 1'b0;
         rd_q[issue_id] <= decoded_desc.dst_addr[0];
         hartid_q[issue_id] <= cvxif_req_i.issue_req.hartid;
       end
+      if (commit_valid)
+        committed_q[commit_id] <= 1'b1;
       if (kill_valid && live_q[commit_id]) begin
         live_q[commit_id] <= 1'b0;
+        committed_q[commit_id] <= 1'b0;
         epoch_q[commit_id] <= epoch_q[commit_id] + 1'b1;
       end else if (shell_result_fire) begin
         live_q[result_id] <= 1'b0;
+        committed_q[result_id] <= 1'b0;
         epoch_q[result_id] <= epoch_q[result_id] + 1'b1;
       end
     end

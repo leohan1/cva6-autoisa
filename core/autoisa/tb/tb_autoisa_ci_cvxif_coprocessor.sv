@@ -75,7 +75,14 @@ module tb_autoisa_ci_cvxif_coprocessor;
           resp.issue_resp.register_read != 2'b11 || !resp.issue_resp.writeback[0])
         $fatal(1, "native CV-X-IF issue rejected id=%0d", id);
       @(posedge clk); @(negedge clk);
-      req.issue_valid = 0; req.register_valid = 0; req.commit_valid = 0;
+      // CVA6 can hold the commit level for an additional cycle after issue.
+      // The bridge must not forward that level as a second shell commit.
+      req.issue_valid = 0; req.register_valid = 0;
+      #1;
+      if (dut.commit_valid)
+        $fatal(1, "held CV-X-IF commit was forwarded twice id=%0d", id);
+      @(posedge clk); @(negedge clk);
+      req.commit_valid = 0;
     end
   endtask
 

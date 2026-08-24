@@ -13,7 +13,7 @@ class G3GateTest(unittest.TestCase):
     def test_gate_steps_end_with_elf_execution(self) -> None:
         steps = gate_steps("python", Path("vivado"), Path("toolchain"))
         self.assertEqual([step.name for step in steps],
-                         ["layout-g0", "source-manifest", "minimal-elf"])
+                         ["layout-g0", "source-manifest", "program-coverage-elf"])
         self.assertIn("run_autoisa_elf_smoke.py", steps[-1].command[1])
         self.assertEqual(steps[-1].command[-2:], ["--toolchain", "toolchain"])
 

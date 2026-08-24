@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and execute the minimal AutoISA D0 ELF on the real Ariane hierarchy."""
+"""Build and execute the AutoISA program-coverage ELF on real Ariane."""
 from __future__ import annotations
 
 import argparse
@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VIVADO = Path(r"D:/apps/HLS/2025.2/Vivado/bin")
-PASS_MARKER = "PASS: minimal AutoISA D0 ELF architectural closure"
+PASS_MARKER = "PASS: expanded AutoISA program-level architectural gate"
 
 
 def run(command: list[str], log: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -32,7 +32,12 @@ def main() -> int:
 
     build = ROOT / "ci/autoisa/build"
     python = sys.executable
-    toolchain_cmd = [python, str(ROOT / "ci/autoisa/check_riscv_toolchain.py")]
+    toolchain_cmd = [
+        python,
+        str(ROOT / "ci/autoisa/check_riscv_toolchain.py"),
+        "--program",
+        "program_coverage",
+    ]
     if args.toolchain:
         toolchain_cmd.extend(["--toolchain", str(args.toolchain)])
     if run(toolchain_cmd, build / "elf_toolchain.log").returncode:
@@ -63,7 +68,7 @@ def main() -> int:
     if PASS_MARKER not in final_output:
         print(f"ERROR: missing PASS marker; see {steps[-1][1]}", file=sys.stderr)
         return 1
-    print("AutoISA minimal ELF smoke: PASS")
+    print("AutoISA expanded program ELF gate: PASS")
     return 0
 
 

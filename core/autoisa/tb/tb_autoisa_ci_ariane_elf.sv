@@ -6,7 +6,9 @@ module autoisa_ci_axi_memory #(
     parameter int unsigned MEM_WORDS = 1024,
     parameter ariane_axi::addr_t MEM_BASE = 64'h8000_0000,
     parameter ariane_axi::addr_t TOHOST_ADDR = 64'h1000_0000,
-    parameter string DEFAULT_HEX = "ci/autoisa/build/software/minimal_d0.hex"
+    parameter ariane_axi::addr_t SIGNATURE_BASE = 64'h1000_0100,
+    parameter int unsigned SIGNATURE_WORDS = 32,
+    parameter string DEFAULT_HEX = "ci/autoisa/build/software/program_coverage.hex"
 ) (
     input  logic clk_i,
     input  logic rst_ni,
@@ -18,6 +20,7 @@ module autoisa_ci_axi_memory #(
   localparam int unsigned DATA_BYTES = ariane_axi::DataWidth / 8;
 
   ariane_axi::data_t mem [0:MEM_WORDS-1];
+  logic [31:0] signature_q [0:SIGNATURE_WORDS-1];
   string mem_hex;
 
   logic rd_active_q;
@@ -110,7 +113,7 @@ module autoisa_ci_axi_memory #(
   end
 
   always_ff @(posedge clk_i or negedge rst_ni) begin
-    longint unsigned write_index;
+    longint unsigned write_index, bus_base, byte_addr, signature_offset;
     if (!rst_ni) begin
       rd_active_q <= 1'b0;
       rd_id_q <= '0;
@@ -130,6 +133,8 @@ module autoisa_ci_axi_memory #(
       tohost_shadow_q <= '0;
       tohost_valid_o <= 1'b0;
       tohost_value_o <= '0;
+      for (int unsigned i = 0; i < SIGNATURE_WORDS; i++)
+        signature_q[i] <= '0;
     end else begin
       tohost_valid_o <= 1'b0;
 
@@ -163,6 +168,20 @@ module autoisa_ci_axi_memory #(
           tohost_shadow_q <= merged_write;
           tohost_value_o <= merged_write[31:0];
           tohost_valid_o <= 1'b1;
+        end else if (wr_addr >= SIGNATURE_BASE &&
+                     wr_addr < SIGNATURE_BASE + SIGNATURE_WORDS * 4) begin
+          $display("SIGNATURE_WRITE: addr=%016x data=%016x strb=%02x",
+                   wr_addr, req_i.w.data, req_i.w.strb);
+          bus_base = (wr_addr >> $clog2(DATA_BYTES)) << $clog2(DATA_BYTES);
+          for (int unsigned byte_idx = 0; byte_idx < DATA_BYTES; byte_idx++) begin
+            byte_addr = bus_base + byte_idx;
+            if (req_i.w.strb[byte_idx] && byte_addr >= SIGNATURE_BASE &&
+                byte_addr < SIGNATURE_BASE + SIGNATURE_WORDS * 4) begin
+              signature_offset = byte_addr - SIGNATURE_BASE;
+              signature_q[signature_offset >> 2][(signature_offset & 3) * 8 +: 8]
+                  <= req_i.w.data[byte_idx*8 +: 8];
+            end
+          end
         end else if (wr_addr >= MEM_BASE &&
                      wr_addr < MEM_BASE + MEM_WORDS * DATA_BYTES) begin
           write_index = (wr_addr - MEM_BASE) >> $clog2(DATA_BYTES);
@@ -202,7 +221,48 @@ module tb_autoisa_ci_ariane_elf;
   logic tohost_valid;
   logic [31:0] tohost_value;
   int unsigned cycles, issue_count, commit_count, result_count;
-  logic [31:0] last_result;
+  int unsigned reject_count, fault_count, backpressure_cycles;
+  logic [31:0] issue_rd_seen, result_rd_seen;
+  logic [7:0] transaction_live, transaction_committed;
+  autoisa_ci_types_pkg::autoisa_ci_rsp_t stalled_result;
+  logic stalled_result_captured, backpressure_done;
+
+  localparam int unsigned EXPECTED_ACCEPTED = 11;
+  localparam logic [31:0] EXPECTED_RD_MASK =
+      (32'd1 << 5) | (32'd1 << 8) | (32'd1 << 9) |
+      (32'd1 << 10) | (32'd1 << 11) | (32'd1 << 12) |
+      (32'd1 << 13) | (32'd1 << 14) | (32'd1 << 15) |
+      (32'd1 << 16) | (32'd1 << 17);
+
+  function automatic logic expected_destination(input logic [4:0] rd);
+    expected_destination = EXPECTED_RD_MASK[rd];
+  endfunction
+
+  function automatic logic [7:0] expected_ci(input logic [4:0] rd);
+    unique case (rd)
+      5'd13: expected_ci = 8'd8;
+      5'd14: expected_ci = 8'd9;
+      5'd15: expected_ci = 8'd10;
+      5'd16: expected_ci = 8'd7;
+      5'd17: expected_ci = 8'd11;
+      default: expected_ci = 8'd0;
+    endcase
+  endfunction
+
+  function automatic logic [31:0] expected_result(input logic [4:0] rd);
+    unique case (rd)
+      5'd5, 5'd8: expected_result = 32'd0;
+      5'd9: expected_result = 32'hffff_fffe;
+      5'd10: expected_result = 32'd3;
+      5'd11: expected_result = 32'd5;
+      5'd12: expected_result = 32'd8;
+      5'd13: expected_result = 32'd30;
+      5'd14: expected_result = 32'haaaa_aaaa;
+      5'd15: expected_result = 32'd1;
+      5'd16: expected_result = 32'd36;
+      default: expected_result = '0;
+    endcase
+  endfunction
 
   always #5ns clk_i = ~clk_i;
 
@@ -225,39 +285,183 @@ module tb_autoisa_ci_ariane_elf;
     rst_ni = 1'b1;
   end
 
+  initial begin : inject_result_backpressure
+    backpressure_done = 1'b0;
+    wait (rst_ni);
+    wait (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire &&
+          dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0] == 5'd15);
+    @(negedge clk_i);
+    force dut.cvxif_req.result_ready = 1'b0;
+    wait (backpressure_cycles >= 4);
+    @(negedge clk_i);
+    release dut.cvxif_req.result_ready;
+    backpressure_done = 1'b1;
+  end
+
   always_ff @(posedge clk_i) begin
     if (!rst_ni) begin
       cycles <= 0;
       issue_count <= 0;
       commit_count <= 0;
       result_count <= 0;
-      last_result <= '0;
+      reject_count <= 0;
+      fault_count <= 0;
+      backpressure_cycles <= 0;
+      issue_rd_seen <= '0;
+      result_rd_seen <= '0;
+      transaction_live <= '0;
+      transaction_committed <= '0;
+      stalled_result <= '0;
+      stalled_result_captured <= 1'b0;
     end else begin
       cycles <= cycles + 1;
-      if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire)
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire) begin
+        $display("EVENT: issue id=%0d rd=%0d ci=%0d",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id,
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0],
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id);
         issue_count <= issue_count + 1;
-      if (dut.gen_cvxif.i_autoisa_ci_cvxif.commit_valid)
+        if (!expected_destination(
+                dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]))
+          $fatal(1, "unexpected AutoISA destination accepted");
+        if (issue_rd_seen[
+                dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]])
+          $fatal(1, "duplicate AutoISA issue for rd=%0d",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]);
+        if (dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id !=
+            expected_ci(dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]))
+          $fatal(1, "wrong D/L combination accepted for rd=%0d",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]);
+        if (transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id])
+          $fatal(1, "CV-X-IF transaction ID reused while live");
+        issue_rd_seen[
+            dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]] <= 1'b1;
+        transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id] <= 1'b1;
+        transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id] <= 1'b0;
+      end
+
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.commit_valid) begin
+        $display("EVENT: commit id=%0d live=%0d committed=%0d",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id,
+                 transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id],
+                 transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id]);
         commit_count <= commit_count + 1;
+        if (!(transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id] ||
+              (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire &&
+               dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id ==
+                   dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id)))
+          $fatal(1, "AutoISA commit without an accepted issue");
+        if (transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id])
+          $fatal(1, "duplicate AutoISA commit");
+        transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id] <= 1'b1;
+      end
+
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_req_i.issue_valid &&
+          dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.issue_ready &&
+          !dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.issue_resp.accept)
+        reject_count <= reject_count + 1;
+
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_valid &&
+          !dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_req_i.result_ready) begin
+        backpressure_cycles <= backpressure_cycles + 1;
+        if (!stalled_result_captured) begin
+          stalled_result <= dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result;
+          stalled_result_captured <= 1'b1;
+        end else if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result != stalled_result) begin
+          $fatal(1, "AutoISA result payload changed under backpressure");
+        end
+      end
+
       if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_fire) begin
+        $display("EVENT: result id=%0d rd=%0d status=%0d data=%08x",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.result_id,
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                     dut.gen_cvxif.i_autoisa_ci_cvxif.result_id],
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.status,
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0]);
         result_count <= result_count + 1;
-        last_result <= dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0];
+        if (!transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.result_id])
+          $fatal(1, "AutoISA result without an accepted issue");
+        if (!(transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.result_id] ||
+              (dut.gen_cvxif.i_autoisa_ci_cvxif.commit_valid &&
+               dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id ==
+                   dut.gen_cvxif.i_autoisa_ci_cvxif.result_id)))
+          $fatal(1, "AutoISA result arrived without commit");
+        if (result_rd_seen[
+                dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                    dut.gen_cvxif.i_autoisa_ci_cvxif.result_id]])
+          $fatal(1, "duplicate AutoISA result/writeback");
+        result_rd_seen[
+            dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                dut.gen_cvxif.i_autoisa_ci_cvxif.result_id]] <= 1'b1;
+        transaction_live[dut.gen_cvxif.i_autoisa_ci_cvxif.result_id] <= 1'b0;
+        transaction_committed[dut.gen_cvxif.i_autoisa_ci_cvxif.result_id] <= 1'b0;
+
+        if (dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                dut.gen_cvxif.i_autoisa_ci_cvxif.result_id] == 5'd17) begin
+          fault_count <= fault_count + 1;
+          if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.status !=
+                  autoisa_ci_types_pkg::AUTOISA_STATUS_ENGINE_FAULT ||
+              dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.result.we[0])
+            $fatal(1, "D11 fault incorrectly enabled architectural writeback");
+        end else begin
+          if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.status !=
+                  autoisa_ci_types_pkg::AUTOISA_STATUS_OK ||
+              dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0] !=
+                  expected_result(dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                      dut.gen_cvxif.i_autoisa_ci_cvxif.result_id]) ||
+              !dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.result.we[0] ||
+              dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.result.rd !=
+                  dut.gen_cvxif.i_autoisa_ci_cvxif.rd_q[
+                      dut.gen_cvxif.i_autoisa_ci_cvxif.result_id] ||
+              dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_resp_o.result.data !=
+                  dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0])
+            $fatal(1, "AutoISA result or architectural writeback mismatch");
+        end
       end
 
       if (tohost_valid) begin
-        $display("DATA: cycles=%0d autoisa_issue=%0d commit=%0d result=%0d last_result=%0d tohost=%0d",
-                 cycles, issue_count, commit_count, result_count,
-                 last_result, tohost_value);
+        $display("DATA: cycles=%0d issue=%0d commit=%0d result=%0d reject=%0d fault=%0d backpressure=%0d tohost=%0d",
+                 cycles, issue_count, commit_count, result_count, reject_count,
+                 fault_count, backpressure_cycles, tohost_value);
         if (tohost_value != 32'd1)
-          $fatal(1, "minimal D0 program reported failure through tohost");
-        if (issue_count != 1 || commit_count < 1 || result_count != 1 ||
-            last_result != 32'd42)
+          $fatal(1, "AutoISA coverage program reported failure through tohost");
+        if (issue_count != EXPECTED_ACCEPTED ||
+            commit_count != EXPECTED_ACCEPTED ||
+            result_count != EXPECTED_ACCEPTED || reject_count != 2 ||
+            fault_count != 1 || backpressure_cycles < 4 ||
+            !backpressure_done || issue_rd_seen != EXPECTED_RD_MASK ||
+            result_rd_seen != EXPECTED_RD_MASK || transaction_live != '0)
           $fatal(1, "AutoISA protocol evidence is incomplete");
-        $display("PASS: minimal AutoISA D0 ELF architectural closure");
+        for (int unsigned i = 0; i <= 20; i++)
+          $display("SIGNATURE[%0d]=%08x", i, i_memory.signature_q[i]);
+        if (i_memory.signature_q[0] != 32'h4155_544f ||
+            i_memory.signature_q[1] != 32'd1 ||
+            i_memory.signature_q[2] != 32'd1 ||
+            i_memory.signature_q[3] != 32'h0000_1fff ||
+            i_memory.signature_q[4] != 32'd2 ||
+            i_memory.signature_q[5] != 32'd2 ||
+            i_memory.signature_q[7] != EXPECTED_ACCEPTED ||
+            i_memory.signature_q[8] != 32'd0 ||
+            i_memory.signature_q[9] != 32'd0 ||
+            i_memory.signature_q[10] != 32'hffff_fffe ||
+            i_memory.signature_q[11] != 32'd3 ||
+            i_memory.signature_q[12] != 32'd5 ||
+            i_memory.signature_q[13] != 32'd8 ||
+            i_memory.signature_q[14] != 32'd30 ||
+            i_memory.signature_q[15] != 32'haaaa_aaaa ||
+            i_memory.signature_q[16] != 32'd1 ||
+            i_memory.signature_q[17] != 32'd36 ||
+            i_memory.signature_q[18] != 32'h1357_9bdf ||
+            i_memory.signature_q[19] != 32'h2468_ace0 ||
+            i_memory.signature_q[20] != 32'h5349_474e)
+          $fatal(1, "software signature is incomplete or incorrect");
+        $display("PASS: expanded AutoISA program-level architectural gate");
         $finish;
       end
 
-      if (cycles == 20000)
-        $fatal(1, "timeout waiting for minimal AutoISA D0 ELF tohost");
+      if (cycles == 40000)
+        $fatal(1, "timeout waiting for AutoISA program coverage tohost");
     end
   end
 
