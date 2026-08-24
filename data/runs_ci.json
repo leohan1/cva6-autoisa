@@ -1,5 +1,26 @@
 [
   {
+    "id": 32710973865,
+    "source": "github-actions",
+    "simulator": "verilator",
+    "run_number": 12,
+    "status": "completed",
+    "conclusion": "failure",
+    "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/32710973865",
+    "head_branch": "leohan1-patch-2",
+    "head_sha": "2356c0e6",
+    "event": "push",
+    "created_at": "2026-08-24T09:20:17Z",
+    "updated_at": "2026-08-24T09:21:11Z",
+    "run_started_at": "2026-08-24T09:20:17Z",
+    "duration_seconds": 54,
+    "total_jobs": 0,
+    "passed_jobs": 0,
+    "failed_jobs": 0,
+    "skipped_jobs": 0,
+    "jobs": []
+  },
+  {
     "id": 32709752569,
     "source": "github-actions",
     "simulator": "verilator",
