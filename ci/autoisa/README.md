@@ -245,7 +245,10 @@ The 2026-08-19 baseline was revalidated with Vivado/XSim 2025.2:
 - Source manifest: 20 production RTL sources, ABI v1.0.
 - Q00-Q15 evidence audit: 16/16 PASS.
 - Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
-- Full Ariane smoke: stock and `AUTOISA_CI_CVXIF` both compile, elaborate, and run to 195 ns.
+- Full Ariane smoke: stock, `AUTOISA_CI_CVXIF` 2R, and `AUTOISA_CI_3R`
+  all compile, elaborate, and run to 195 ns with zero actionable warnings.
+- Known XSim assertion limitations and 0ns HPDCache initialization messages are
+  narrowly classified; any other whole-core warning blocks reset smoke and G3.
 
 The minimum program-level gate is now closed: the D0 ELF executes through the
 real Ariane/CV-X-IF/AutoISA path, returns 42, writes the destination register,
