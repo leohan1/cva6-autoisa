@@ -230,6 +230,7 @@ module issue_read_operands
   // CVXIF Signals
   logic cvxif_req_allowed;
   logic x_transaction_rejected, x_transaction_rejected_n;
+  logic x_register_read_rs3;
   logic [OPERANDS_PER_INSTR-1:0] rs_valid;
   logic [OPERANDS_PER_INSTR-1:0][CVA6Cfg.XLEN-1:0] rs;
 
@@ -259,12 +260,14 @@ module issue_read_operands
       .register_i      (rs),
       .rs_valid_i      (rs_valid)
   );
-  if (OPERANDS_PER_INSTR == 3) begin
+  if (OPERANDS_PER_INSTR == 3) begin : gen_three_operands
     assign rs_valid = {~stall_rs3[0], ~stall_rs2[0], ~stall_rs1[0]};
     assign rs = {fu_data_n[0].imm, fu_data_n[0].operand_b, fu_data_n[0].operand_a};
-  end else begin
+    assign x_register_read_rs3 = x_issue_resp_i.register_read[2];
+  end else begin : gen_two_operands
     assign rs_valid = {~stall_rs2[0], ~stall_rs1[0]};
     assign rs = {fu_data_n[0].operand_b, fu_data_n[0].operand_a};
+    assign x_register_read_rs3 = 1'b1;
   end
 
   // TODO check only for 1st instruction ??
@@ -622,7 +625,7 @@ module issue_read_operands
           forward_rs2[0] = 1'b0;
           stall_rs2[0]   = 1'b0;
         end
-        if (OPERANDS_PER_INSTR == 3 && ~x_issue_resp_i.register_read[2]) begin
+        if (~x_register_read_rs3) begin
           forward_rs3[0] = 1'b0;
           stall_rs3[0]   = 1'b0;
         end

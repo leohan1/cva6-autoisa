@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from check_cva6_warnings import audit_warning_log
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VIVADO = Path(r"D:/apps/HLS/2025.2/Vivado/bin")
 
@@ -21,10 +23,23 @@ def run(command: list[str], log: Path) -> bool:
     return result.returncode == 0
 
 
+def warnings_ok(log: Path, stage: str) -> bool:
+    audit = audit_warning_log(log, stage)
+    print(
+        f"{stage}: allowed_tool_warnings={len(audit.allowed)} "
+        f"actionable_warnings={len(audit.actionable)}"
+    )
+    for warning in audit.actionable:
+        print(f"ACTIONABLE: {warning}")
+    return not audit.actionable
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--vivado", type=Path, default=DEFAULT_VIVADO)
-    parser.add_argument("--mode", choices=("all", "stock", "autoisa"), default="all")
+    parser.add_argument(
+        "--mode", choices=("all", "stock", "autoisa", "autoisa-3r"), default="all"
+    )
     parser.add_argument("--exact-stock-example", action="store_true",
                         help="retain COPRO_EXAMPLE (known to crash xelab 2025.2)")
     args = parser.parse_args()
@@ -39,21 +54,39 @@ def main() -> int:
     xvlog = str(args.vivado / "xvlog.bat")
     xelab = str(args.vivado / "xelab.bat")
     xsim = str(args.vivado / "xsim.bat")
-    modes = ("stock", "autoisa") if args.mode == "all" else (args.mode,)
+    modes = (
+        ("stock", "autoisa", "autoisa-3r")
+        if args.mode == "all"
+        else (args.mode,)
+    )
     for mode in modes:
         defines: list[str] = []
         if mode == "autoisa":
             defines = ["-d", "AUTOISA_CI_CVXIF"]
+        elif mode == "autoisa-3r":
+            defines = ["-d", "AUTOISA_CI_CVXIF", "-d", "AUTOISA_CI_3R"]
         elif args.exact_stock_example:
             defines = ["-d", "AUTOISA_STOCK_EXAMPLE"]
-        snapshot = "autoisa_ci_ariane" if mode == "autoisa" else "autoisa_stock_ariane"
-        if not run([xvlog, "-sv", *defines, "-f", str(filelist)], build / f"{mode}_xvlog.log"):
+        snapshot = {
+            "stock": "autoisa_stock_ariane",
+            "autoisa": "autoisa_ci_ariane",
+            "autoisa-3r": "autoisa_ci_ariane_3r",
+        }[mode]
+        xvlog_log = build / f"{mode}_xvlog.log"
+        if not run([xvlog, "-sv", *defines, "-f", str(filelist)], xvlog_log):
             return 1
+        if not warnings_ok(xvlog_log, "xvlog"):
+            return 1
+        xelab_log = build / f"{mode}_xelab.log"
         if not run([xelab, "tb_autoisa_ci_ariane_smoke", "-s", snapshot,
-                    "--timescale", "1ns/1ps"], build / f"{mode}_xelab.log"):
+                    "--timescale", "1ns/1ps"], xelab_log):
+            return 1
+        if not warnings_ok(xelab_log, "xelab"):
             return 1
         sim_log = build / f"{mode}_xsim.log"
         if not run([xsim, snapshot, "-runall"], sim_log):
+            return 1
+        if not warnings_ok(sim_log, "xsim"):
             return 1
         if "PASS: cv32a65x Ariane reset smoke completed" not in sim_log.read_text(encoding="utf-8"):
             print(f"{mode}: no PASS marker")

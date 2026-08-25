@@ -56,7 +56,10 @@ jobs:
 
       - name: Validate gate orchestration
         shell: powershell
-        run: '& $env:AUTOISA_PYTHON -m unittest -v tests.autoisa.test_g3_gate'
+        run: >-
+          & $env:AUTOISA_PYTHON -m unittest -v
+          tests.autoisa.test_g3_gate
+          tests.autoisa.test_cva6_warnings
 
       - name: Run blocking G3 gate
         shell: powershell

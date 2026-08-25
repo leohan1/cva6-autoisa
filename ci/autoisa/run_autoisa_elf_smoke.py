@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from check_cva6_warnings import audit_warning_log
+
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VIVADO = Path(r"D:/apps/HLS/2025.2/Vivado/bin")
 PASS_MARKER = "PASS: expanded AutoISA program-level architectural gate"
@@ -52,21 +54,38 @@ def main() -> int:
     xsim = str(args.vivado / "xsim.bat")
     snapshot = "autoisa_ci_ariane_elf"
     steps = [
-        ([xvlog, "-sv", "-d", "AUTOISA_CI_CVXIF", "-f", str(filelist)],
-         build / "elf_xvlog.log"),
-        ([xelab, "tb_autoisa_ci_ariane_elf", "-s", snapshot,
-          "--timescale", "1ns/1ps"], build / "elf_xelab.log"),
-        ([xsim, snapshot, "-runall"], build / "elf_xsim.log"),
+        (
+            "xvlog",
+            [xvlog, "-sv", "-d", "AUTOISA_CI_CVXIF", "-f", str(filelist)],
+            build / "elf_xvlog.log",
+        ),
+        (
+            "xelab",
+            [xelab, "tb_autoisa_ci_ariane_elf", "-s", snapshot,
+             "--timescale", "1ns/1ps"],
+            build / "elf_xelab.log",
+        ),
+        ("xsim", [xsim, snapshot, "-runall"], build / "elf_xsim.log"),
     ]
     final_output = ""
-    for command, log in steps:
+    for stage, command, log in steps:
         result = run(command, log)
         if result.returncode:
             print(f"ERROR: failed step; see {log}", file=sys.stderr)
             return 1
+        audit = audit_warning_log(log, stage)
+        print(
+            f"{stage}: allowed_tool_warnings={len(audit.allowed)} "
+            f"actionable_warnings={len(audit.actionable)}"
+        )
+        if audit.actionable:
+            for warning in audit.actionable:
+                print(f"ACTIONABLE: {warning}", file=sys.stderr)
+            print(f"ERROR: actionable whole-core warning; see {log}", file=sys.stderr)
+            return 1
         final_output = result.stdout + result.stderr
     if PASS_MARKER not in final_output:
-        print(f"ERROR: missing PASS marker; see {steps[-1][1]}", file=sys.stderr)
+        print(f"ERROR: missing PASS marker; see {steps[-1][2]}", file=sys.stderr)
         return 1
     print("AutoISA expanded program ELF gate: PASS")
     return 0
