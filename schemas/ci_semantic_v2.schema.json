@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autoisa.dev/schemas/ci_semantic_v2.schema.json",
+  "title": "AutoISA typed compute semantic catalog v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "xlen", "semantics"],
+  "properties": {
+    "schema_version": {"const": "2.0"},
+    "xlen": {"const": 32},
+    "semantics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ci_id", "name", "operands", "results", "immediate", "latency", "initiation_interval", "compute_only", "nodes", "outputs"],
+        "properties": {
+          "ci_id": {"type": "integer", "minimum": 0, "maximum": 255},
+          "name": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+          "operands": {"type": "integer", "minimum": 1, "maximum": 6},
+          "results": {"type": "integer", "minimum": 1, "maximum": 2},
+          "immediate": {"type": "boolean"},
+          "latency": {"type": "integer", "minimum": 1, "maximum": 31},
+          "initiation_interval": {"type": "integer", "minimum": 1, "maximum": 31},
+          "compute_only": {"const": true},
+          "nodes": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "op", "args"],
+              "properties": {
+                "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+                "op": {"enum": ["add", "sub", "mul_lo", "xor", "and", "or", "shl", "lshr", "ashr"]},
+                "args": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "string"}}
+              }
+            }
+          },
+          "outputs": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

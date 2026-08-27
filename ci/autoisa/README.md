@@ -242,7 +242,27 @@ interactively if needed.
 The 2026-08-19 baseline was revalidated with Vivado/XSim 2025.2:
 
 - Layout generator tests: 10/10 PASS, including 10,000 encoder/decoder round trips.
-- Source manifest: 20 production RTL sources, ABI v1.0.
+- Source manifest: 21 production RTL sources, ABI v1.0 (including the generated semantic engine).
+
+## WP8 Semantic Generator
+
+`config/semantics_v2.json` is the single executable source for D0-D7 compute
+semantics. It is strictly validated as a stateless, topologically ordered,
+32-bit typed DAG. Regenerate the checked-in RTL and software reference with:
+
+```text
+python scripts/generate_semantics.py
+```
+
+Run the blocking RTL/reference differential test (10,000 vectors per semantic,
+80,000 total, deterministic seed) with:
+
+```text
+python ci/autoisa/run_semantic_diff.py --vivado D:/apps/HLS/2025.2/Vivado/bin
+```
+
+The evidence summary and simulator logs are written below
+`ci/autoisa/build/semantic_diff/`.
 - Q00-Q15 evidence audit: 16/16 PASS.
 - Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
 - Full Ariane smoke: stock, `AUTOISA_CI_CVXIF` 2R, and `AUTOISA_CI_3R`
