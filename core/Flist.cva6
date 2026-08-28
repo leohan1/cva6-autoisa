@@ -114,6 +114,7 @@ ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_types_pkg.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_layout_decoder_v2.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_request_queue.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_inflight_table.sv
+${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_semantic_engine.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_dummy_engine.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_result_queue.sv
 ${CVA6_REPO_DIR}/core/autoisa/autoisa_ci_engine_skid.sv

@@ -47,14 +47,22 @@ class SemanticGeneratorTest(unittest.TestCase):
             second = generator.build(CONFIG, base / "b", base / "b.sv")
             self.assertEqual(first, second)
             self.assertEqual((base / "a.sv").read_bytes(), (base / "b.sv").read_bytes())
-            self.assertEqual((base / "a.sv").read_bytes(),
-                             (ROOT / "core/autoisa/autoisa_ci_semantic_engine.sv").read_bytes())
-            self.assertEqual((base / "a/autoisa_ci_semantic_ref.py").read_bytes(),
-                             (ROOT / "generated/semantics/autoisa_ci_semantic_ref.py").read_bytes())
+            self.assertEqual((base / "a.sv").read_text(encoding="utf-8"),
+                             (ROOT / "core/autoisa/autoisa_ci_semantic_engine.sv").read_text(encoding="utf-8"))
+            self.assertEqual((base / "a/autoisa_ci_semantic_ref.py").read_text(encoding="utf-8"),
+                             (ROOT / "generated/semantics/autoisa_ci_semantic_ref.py").read_text(encoding="utf-8"))
         self.assertEqual(
             (ROOT / "core/autoisa/autoisa_ci_semantic_engine.sv").read_bytes(),
             (ROOT / "generated/semantics/autoisa_ci_semantic_engine.sv").read_bytes(),
         )
+
+    def test_whole_core_filelist_orders_semantic_engine_before_wrapper(self) -> None:
+        lines = (ROOT / "core/Flist.cva6").read_text(encoding="utf-8").splitlines()
+        semantic = next(index for index, line in enumerate(lines)
+                        if line.endswith("/autoisa_ci_semantic_engine.sv"))
+        wrapper = next(index for index, line in enumerate(lines)
+                       if line.endswith("/autoisa_ci_dummy_engine.sv"))
+        self.assertLess(semantic, wrapper)
 
     def test_reference_matches_independent_d0_d7_formulas(self) -> None:
         reference = load_reference(ROOT / "generated/semantics/autoisa_ci_semantic_ref.py")

@@ -61,7 +61,7 @@ module autoisa_ci_dummy_engine (
           selected_rsp.result_valid = 2'b01;
           selected_rsp.results[0] = req_i.operands[0] + req_i.operands[1];
         end
-        8'd11: selected_rsp.status = AUTOISA_STATUS_ENGINE_FAULT;
+        8'd11:   selected_rsp.status = AUTOISA_STATUS_ENGINE_FAULT;
         default: selected_rsp.status = AUTOISA_STATUS_UNSUPPORTED;
       endcase
     end
