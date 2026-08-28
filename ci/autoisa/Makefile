@@ -24,6 +24,7 @@
 #    make toolchain-smoke - build and inspect the minimal RV32 AutoISA D0 ELF
 #    make elf-smoke   - execute the expanded program ELF on Ariane
 #    make g3-gate     - run the blocking program-level integration gate
+#    make wp8         - run semantic generator tests and RTL/reference differential
 #    make clean       - remove xsim work dirs and CI logs
 #    make vars        - print resolved variables (for debugging)
 #
@@ -41,7 +42,7 @@ ROOT   := $(shell python -c "import os, sys; print(os.path.abspath(os.path.join(
 
 RUN_CI := $(CURDIR)/run_ci.py
 
-.PHONY: wp0-wp1 ci ci-v0 ci-rq ci-inf ci-result ci-proto ci-shell ci-random ci-multi ci-multi-shell ci-random-multi ci-dst-map ci-host ci-gather ci-transport ci-cvxif toolchain-smoke elf-smoke g3-gate check-q clean vars help
+.PHONY: wp0-wp1 wp8 ci ci-v0 ci-rq ci-inf ci-result ci-proto ci-shell ci-random ci-multi ci-multi-shell ci-random-multi ci-dst-map ci-host ci-gather ci-transport ci-cvxif toolchain-smoke elf-smoke g3-gate check-q clean vars help
 
 wp0-wp1:  ## regenerate Layout v2, run G0 tests and Vivado decoder smoke
 	"$(PYTHON)" "$(CURDIR)/run_wp0_wp1.py" --vivado "$(VIVADO)"
@@ -103,6 +104,10 @@ elf-smoke:  ## execute the expanded AutoISA program ELF on Ariane
 g3-gate:  ## run G0 consistency, source manifest, and the minimal ELF closure
 	"$(PYTHON)" "$(CURDIR)/run_g3_gate.py" --vivado "$(VIVADO)"
 
+wp8:  ## validate Semantic v2 and run 80k RTL/reference differential vectors
+	cd "$(ROOT)" && "$(PYTHON)" -m unittest -v tests.autoisa.test_semantic_generator
+	"$(PYTHON)" "$(CURDIR)/run_semantic_diff.py" --vivado "$(VIVADO)"
+
 check-q:  ## audit Q00-Q15 against current XSim logs
 	"$(PYTHON)" "$(CURDIR)/check_q_coverage.py"
 
@@ -137,6 +142,7 @@ help:  ## show this help
 	@echo   make toolchain-smoke build and inspect the minimal RV32 AutoISA D0 ELF
 	@echo   make elf-smoke execute the expanded ELF and check signature/protocol/writeback
 	@echo   make g3-gate run the blocking AutoISA G3 program-level gate
+	@echo   make wp8     generate D0-D7 RTL/reference and run 80k differential vectors
 	@echo   make check-q audit Q00-Q15 against current passing logs
 	@echo   make clean    remove xsim work dirs and CI logs
 	@echo   make vars     print resolved variables

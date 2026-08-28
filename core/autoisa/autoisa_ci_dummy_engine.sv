@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Pure-compute reference engine for dummy semantics D0-D7.
+// Protocol wrapper around generated D0-D7 semantics and D8-D11 stress cases.
 `timescale 1ns / 1ps
 `default_nettype none
 
@@ -18,102 +18,54 @@ module autoisa_ci_dummy_engine (
   logic busy_q;
   logic [4:0] cycles_left_q;
   autoisa_ci_rsp_t rsp_q;
+  logic semantic_supported;
+  logic [4:0] semantic_latency;
+  logic [1:0] semantic_result_valid;
+  logic [1:0][31:0] semantic_results;
+  logic [4:0] selected_latency;
+  autoisa_ci_rsp_t selected_rsp;
 
-  function automatic logic [4:0] latency_for(input autoisa_ci_req_t req);
-    unique case (req.ci_id)
-      8'd0: latency_for = 5'd1;
-      8'd1: latency_for = 5'd2;
-      8'd2: latency_for = 5'd3;
-      8'd3: latency_for = 5'd2;
-      8'd4: latency_for = 5'd4;
-      8'd5: latency_for = 5'd3;
-      8'd6: latency_for = 5'd5;
-      8'd7: latency_for = 5'd1;
-      8'd8: latency_for = {2'b00, req.operands[0][2:0]} + 1'b1;
-      8'd9: latency_for = 5'd16;
-      8'd10: latency_for = 5'd2;
-      8'd11: latency_for = 5'd1;
-      default: latency_for = 5'd1;
-    endcase
-  endfunction
+  autoisa_ci_semantic_engine i_semantic_engine (
+      .ci_id_i(req_i.ci_id),
+      .operands_i(req_i.operands),
+      .immediate_i(req_i.immediate),
+      .supported_o(semantic_supported),
+      .latency_o(semantic_latency),
+      .result_valid_o(semantic_result_valid),
+      .results_o(semantic_results)
+  );
 
-  function automatic autoisa_ci_rsp_t execute(input autoisa_ci_req_t req);
-    autoisa_ci_rsp_t result;
-    logic [31:0] ab;
-    logic [4:0] shamt;
-    begin
-      result = '0;
-      result.tag = req.tag;
-      result.epoch = req.epoch;
-      result.status = AUTOISA_STATUS_OK;
-      unique case (req.ci_id)
-        8'd0: begin
-          result.result_valid = 2'b01;
-          result.results[0]   = req.operands[0] + req.operands[1];
-        end
-        8'd1: begin
-          result.result_valid = 2'b01;
-          result.results[0]   = (req.operands[0] * req.operands[1]) + req.operands[2];
-        end
-        8'd2: begin
-          result.result_valid = 2'b01;
-          result.results[0] = ((req.operands[0] * req.operands[1]) +
-                               req.operands[2]) ^ req.operands[3];
-        end
-        8'd3: begin
-          result.result_valid = 2'b11;
-          result.results[0]   = req.operands[0] + req.operands[1];
-          result.results[1]   = req.operands[0] - req.operands[1];
-        end
-        8'd4: begin
-          result.result_valid = 2'b11;
-          result.results[0] = (req.operands[0] * req.operands[2]) -
-                              (req.operands[1] * req.operands[3]);
-          result.results[1] = (req.operands[0] * req.operands[3]) +
-                              (req.operands[1] * req.operands[2]);
-        end
-        8'd5: begin
-          result.result_valid = 2'b01;
-          result.results[0] = req.operands[0] + req.operands[1] +
-                              req.operands[2] + req.operands[3] +
-                              req.operands[4] + req.operands[5];
-        end
-        8'd6: begin
-          ab = req.operands[0] * req.operands[1];
-          result.result_valid = 2'b11;
-          result.results[0] = ab + (req.operands[2] * req.operands[3]) +
-                              (req.operands[4] * req.operands[5]);
-          result.results[1] = ab - (req.operands[2] * req.operands[3]) +
-                              (req.operands[4] * req.operands[5]);
-        end
-        8'd7: begin
-          shamt = req.immediate[4:0];
-          result.result_valid = 2'b01;
-          result.results[0] = (req.operands[0] << shamt) ^ (req.operands[1] + req.immediate);
+  always_comb begin
+    selected_latency = semantic_supported ? semantic_latency : 5'd1;
+    selected_rsp = '0;
+    selected_rsp.tag = req_i.tag;
+    selected_rsp.epoch = req_i.epoch;
+    selected_rsp.status = AUTOISA_STATUS_OK;
+    if (semantic_supported) begin
+      selected_rsp.result_valid = semantic_result_valid;
+      selected_rsp.results = semantic_results;
+    end else begin
+      unique case (req_i.ci_id)
+        8'd8: begin
+          selected_latency = {2'b00, req_i.operands[0][2:0]} + 1'b1;
+          selected_rsp.result_valid = 2'b01;
+          selected_rsp.results[0] = req_i.operands[0] + req_i.operands[1];
         end
         8'd9: begin
-          result.result_valid = 2'b01;
-          result.results[0]   = req.operands[0] ^ req.operands[1];
-        end
-        8'd8: begin
-          result.result_valid = 2'b01;
-          result.results[0]   = req.operands[0] + req.operands[1];
+          selected_latency = 5'd16;
+          selected_rsp.result_valid = 2'b01;
+          selected_rsp.results[0] = req_i.operands[0] ^ req_i.operands[1];
         end
         8'd10: begin
-          result.result_valid = 2'b01;
-          result.results[0]   = req.operands[0] + req.operands[1];
+          selected_latency = 5'd2;
+          selected_rsp.result_valid = 2'b01;
+          selected_rsp.results[0] = req_i.operands[0] + req_i.operands[1];
         end
-        8'd11: begin
-          result.result_valid = 2'b00;
-          result.status = AUTOISA_STATUS_ENGINE_FAULT;
-        end
-        default: begin
-          result.status = AUTOISA_STATUS_UNSUPPORTED;
-        end
+        8'd11:   selected_rsp.status = AUTOISA_STATUS_ENGINE_FAULT;
+        default: selected_rsp.status = AUTOISA_STATUS_UNSUPPORTED;
       endcase
-      execute = result;
     end
-  endfunction
+  end
 
   assign req_ready_o = !busy_q;
   assign rsp_valid_o = busy_q && (cycles_left_q == 5'd0);
@@ -127,8 +79,8 @@ module autoisa_ci_dummy_engine (
     end else begin
       if (req_valid_i && req_ready_o) begin
         busy_q <= 1'b1;
-        cycles_left_q <= latency_for(req_i) - 1'b1;
-        rsp_q <= execute(req_i);
+        cycles_left_q <= selected_latency - 1'b1;
+        rsp_q <= selected_rsp;
       end else if (busy_q && (cycles_left_q != 5'd0)) begin
         cycles_left_q <= cycles_left_q - 1'b1;
       end else if (rsp_valid_o && rsp_ready_i) begin

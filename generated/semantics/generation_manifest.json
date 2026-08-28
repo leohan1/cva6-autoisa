@@ -1,0 +1,23 @@
+{
+  "artifacts": {
+    "core/autoisa/autoisa_ci_semantic_engine.sv": "19dda4d34772d71f2d5d81c7a1832d41c72466c889ca549afef49a2daadc152b",
+    "generated/semantics/autoisa_ci_semantic_engine.sv": "19dda4d34772d71f2d5d81c7a1832d41c72466c889ca549afef49a2daadc152b",
+    "generated/semantics/autoisa_ci_semantic_ref.py": "57e5125dda29333fd5a004c2a7fa24418b9eb7c05d6a14d4ad636b3a10b37697",
+    "generated/semantics/semantics.normalized.json": "fbadcad47d75a3b5b54a7c3a62066888cdfa342b5f1498ebfee4e5435e98f3f0"
+  },
+  "catalog": "config/semantics_v2.json",
+  "catalog_sha256": "fbadcad47d75a3b5b54a7c3a62066888cdfa342b5f1498ebfee4e5435e98f3f0",
+  "ci_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "generator": "scripts/generate_semantics.py",
+  "schema_version": "2.0",
+  "semantic_count": 8
+}

@@ -220,6 +220,8 @@ def main() -> int:
                         help="Do not write per-TB transcript logs.")
     parser.add_argument("--skip-layout-generate", action="store_true",
                         help="Use the checked-in Layout v2 RTL without regenerating it first.")
+    parser.add_argument("--skip-semantic-generate", action="store_true",
+                        help="Use the checked-in Semantic v2 RTL without regenerating it first.")
     args = parser.parse_args()
 
     root: Path = args.root.resolve()
@@ -244,6 +246,13 @@ def main() -> int:
             print("ERROR: Layout v2 generation/validation failed", file=sys.stderr)
             return 2
 
+    if not args.skip_semantic_generate:
+        generator = root / "scripts/generate_semantics.py"
+        result = step("semantic-v2", [sys.executable, str(generator)], cwd=root)
+        if result.returncode != 0:
+            print("ERROR: Semantic v2 generation/validation failed", file=sys.stderr)
+            return 2
+
     try:
         xvlog = find_tool(vivado_bin, "xvlog")
         xelab = find_tool(vivado_bin, "xelab")
@@ -264,6 +273,7 @@ def main() -> int:
     print(f"  vivado bin   : {vivado_bin}")
     print(f"  testbenches  : {[tb['name'] for tb in selected]}")
     print(f"  layout v2    : {'checked-in' if args.skip_layout_generate else 'regenerated'}")
+    print(f"  semantic v2  : {'checked-in' if args.skip_semantic_generate else 'regenerated'}")
     print(f"  log dir      : {log_dir if not args.no_logs else '(disabled)'}")
     print()
 

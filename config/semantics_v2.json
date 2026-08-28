@@ -1,0 +1,139 @@
+{
+  "schema_version": "2.0",
+  "xlen": 32,
+  "semantics": [
+    {
+      "ci_id": 0,
+      "name": "D0_ADD2",
+      "operands": 2,
+      "results": 1,
+      "immediate": false,
+      "latency": 1,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "sum", "op": "add", "args": ["operand0", "operand1"]}
+      ],
+      "outputs": ["sum"]
+    },
+    {
+      "ci_id": 1,
+      "name": "D1_MAC3",
+      "operands": 3,
+      "results": 1,
+      "immediate": false,
+      "latency": 2,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "product", "op": "mul_lo", "args": ["operand0", "operand1"]},
+        {"id": "result", "op": "add", "args": ["product", "operand2"]}
+      ],
+      "outputs": ["result"]
+    },
+    {
+      "ci_id": 2,
+      "name": "D2_MAC_XOR4",
+      "operands": 4,
+      "results": 1,
+      "immediate": false,
+      "latency": 3,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "product", "op": "mul_lo", "args": ["operand0", "operand1"]},
+        {"id": "sum", "op": "add", "args": ["product", "operand2"]},
+        {"id": "result", "op": "xor", "args": ["sum", "operand3"]}
+      ],
+      "outputs": ["result"]
+    },
+    {
+      "ci_id": 3,
+      "name": "D3_ADD_SUB2",
+      "operands": 2,
+      "results": 2,
+      "immediate": false,
+      "latency": 2,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "sum", "op": "add", "args": ["operand0", "operand1"]},
+        {"id": "difference", "op": "sub", "args": ["operand0", "operand1"]}
+      ],
+      "outputs": ["sum", "difference"]
+    },
+    {
+      "ci_id": 4,
+      "name": "D4_COMPLEX_MUL4",
+      "operands": 4,
+      "results": 2,
+      "immediate": false,
+      "latency": 4,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "ac", "op": "mul_lo", "args": ["operand0", "operand2"]},
+        {"id": "bd", "op": "mul_lo", "args": ["operand1", "operand3"]},
+        {"id": "ad", "op": "mul_lo", "args": ["operand0", "operand3"]},
+        {"id": "bc", "op": "mul_lo", "args": ["operand1", "operand2"]},
+        {"id": "real", "op": "sub", "args": ["ac", "bd"]},
+        {"id": "imag", "op": "add", "args": ["ad", "bc"]}
+      ],
+      "outputs": ["real", "imag"]
+    },
+    {
+      "ci_id": 5,
+      "name": "D5_ADD6",
+      "operands": 6,
+      "results": 1,
+      "immediate": false,
+      "latency": 3,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "s01", "op": "add", "args": ["operand0", "operand1"]},
+        {"id": "s23", "op": "add", "args": ["operand2", "operand3"]},
+        {"id": "s45", "op": "add", "args": ["operand4", "operand5"]},
+        {"id": "s0123", "op": "add", "args": ["s01", "s23"]},
+        {"id": "result", "op": "add", "args": ["s0123", "s45"]}
+      ],
+      "outputs": ["result"]
+    },
+    {
+      "ci_id": 6,
+      "name": "D6_DUAL_MAC6",
+      "operands": 6,
+      "results": 2,
+      "immediate": false,
+      "latency": 5,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "ab", "op": "mul_lo", "args": ["operand0", "operand1"]},
+        {"id": "cd", "op": "mul_lo", "args": ["operand2", "operand3"]},
+        {"id": "ef", "op": "mul_lo", "args": ["operand4", "operand5"]},
+        {"id": "sum_ab_cd", "op": "add", "args": ["ab", "cd"]},
+        {"id": "diff_ab_cd", "op": "sub", "args": ["ab", "cd"]},
+        {"id": "sum", "op": "add", "args": ["sum_ab_cd", "ef"]},
+        {"id": "difference", "op": "add", "args": ["diff_ab_cd", "ef"]}
+      ],
+      "outputs": ["sum", "difference"]
+    },
+    {
+      "ci_id": 7,
+      "name": "D7_SHIFT_XOR_IMM",
+      "operands": 2,
+      "results": 1,
+      "immediate": true,
+      "latency": 1,
+      "initiation_interval": 1,
+      "compute_only": true,
+      "nodes": [
+        {"id": "shifted", "op": "shl", "args": ["operand0", "immediate"]},
+        {"id": "biased", "op": "add", "args": ["operand1", "immediate"]},
+        {"id": "result", "op": "xor", "args": ["shifted", "biased"]}
+      ],
+      "outputs": ["result"]
+    }
+  ]
+}

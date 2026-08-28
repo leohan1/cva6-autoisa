@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: Apache-2.0
+name: autoisa-semantic-gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - autoisa-rtl-capability-v1
+  workflow_dispatch:
+
+concurrency:
+  group: autoisa-semantic-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  wp8-semantic-differential:
+    name: AutoISA G4 / Semantic Differential
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Windows, X64, autoisa-vivado]
+    timeout-minutes: 15
+    env:
+      AUTOISA_PYTHON: ${{ vars.AUTOISA_PYTHON }}
+      AUTOISA_VIVADO_BIN: ${{ vars.AUTOISA_VIVADO_BIN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Validate runner tools
+        shell: powershell
+        run: |
+          $required = @(
+            $env:AUTOISA_PYTHON,
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xvlog.bat'),
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xelab.bat'),
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xsim.bat')
+          )
+          foreach ($path in $required) {
+            if (-not $path -or -not (Test-Path -LiteralPath $path)) {
+              throw "Required WP8 runner tool is missing: $path"
+            }
+          }
+
+      - name: Validate semantic contract and generator
+        shell: powershell
+        run: '& $env:AUTOISA_PYTHON -m unittest -v tests.autoisa.test_semantic_generator'
+
+      - name: Run blocking semantic differential
+        shell: powershell
+        run: '& $env:AUTOISA_PYTHON ci/autoisa/run_semantic_diff.py --vivado $env:AUTOISA_VIVADO_BIN'
+
+      - name: Upload WP8 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoisa-wp8-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            generated/semantics/generation_manifest.json
+            generated/semantics/semantics.normalized.json
+            ci/autoisa/build/semantic_diff/semantic_diff_summary.json
+            ci/autoisa/build/semantic_diff/*.log
