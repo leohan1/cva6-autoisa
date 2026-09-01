@@ -97,14 +97,18 @@ make -C ci/autoisa elf-smoke VIVADO=D:/apps/HLS/2025.2/Vivado/bin
 python ci/autoisa/run_autoisa_elf_smoke.py --vivado D:/apps/HLS/2025.2/Vivado/bin
 ```
 
-This builds the D0 ELF and memory image, compiles the full `cv32a65x` Ariane
-design with `AUTOISA_CI_CVXIF`, boots it at `0x80000000`, and checks the real
-issue/commit/result path. The program branches on the value written back to
-`x5` and writes `tohost=1` only when the result is 42. A passing run reports:
+This builds the D0/D1/D7 ELF and memory image, compiles the full `cv32a65x`
+Ariane design with `AUTOISA_CI_CVXIF` and `AUTOISA_CI_3R`, boots it at
+`0x80000000`, and checks the real issue/commit/result path. The program branches
+on the value written back to
+each destination and writes `tohost=1` only after the complete signature passes.
+The G3 signature oracle is generated from
+`generated/semantics/autoisa_ci_semantic_ref.py`; D0, D1, and D7 therefore
+compare Layout decode, RTL execution, and generated reference results.
 
 ```text
-DATA: cycles=94 autoisa_issue=1 commit=1 result=1 last_result=42 tohost=1
-PASS: minimal AutoISA D0 ELF architectural closure
+DATA: cycles=372 issue=12 commit=12 result=12 reject=2 fault=1 backpressure=5 tohost=1
+PASS: expanded AutoISA program-level architectural gate
 ```
 
 ## Blocking G3 gate
@@ -263,6 +267,15 @@ python ci/autoisa/run_semantic_diff.py --vivado D:/apps/HLS/2025.2/Vivado/bin
 
 The evidence summary and simulator logs are written below
 `ci/autoisa/build/semantic_diff/`.
+
+## Blocking G4 gate
+
+`make -C ci/autoisa g4-gate` is the single branch-protection candidate named
+`AutoISA G4 / Semantic Differential`. It blocks on four mutation classes
+(layout routing, semantic arity, immediate capability, and semantic operator),
+Layout/Semantic bidirectional ID and shape consistency, the 80,000-vector
+RTL/reference differential, and the complete G3 D0/D1/D7 program-signature
+closure. Evidence is summarized in `ci/autoisa/build/g4_gate_summary.json`.
 - Q00-Q15 evidence audit: 16/16 PASS.
 - Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
 - Full Ariane smoke: stock, `AUTOISA_CI_CVXIF` 2R, and `AUTOISA_CI_3R`

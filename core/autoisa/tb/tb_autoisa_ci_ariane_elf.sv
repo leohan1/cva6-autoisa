@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Program-level AutoISA D0 closure on the real cv32a65x Ariane hierarchy.
+// Program-level AutoISA D0/D1/D7 closure on the real cv32a65x Ariane hierarchy.
 `timescale 1ns / 1ps
 
 module autoisa_ci_axi_memory #(
@@ -215,12 +215,16 @@ module tb_autoisa_ci_ariane_elf;
   autoisa_ci_types_pkg::autoisa_ci_rsp_t stalled_result;
   logic stalled_result_captured, backpressure_done;
 
-  localparam int unsigned EXPECTED_ACCEPTED = 11;
+  localparam int unsigned EXPECTED_ACCEPTED = 12;
+  localparam int unsigned SIGNATURE_CHECK_WORDS = 22;
+  logic [31:0] expected_signature[0:SIGNATURE_CHECK_WORDS-1];
+  logic [31:0] expected_signature_mask[0:SIGNATURE_CHECK_WORDS-1];
+  string signature_oracle_hex, signature_mask_hex;
   localparam logic [31:0] EXPECTED_RD_MASK =
       (32'd1 << 5) | (32'd1 << 8) | (32'd1 << 9) |
       (32'd1 << 10) | (32'd1 << 11) | (32'd1 << 12) |
       (32'd1 << 13) | (32'd1 << 14) | (32'd1 << 15) |
-      (32'd1 << 16) | (32'd1 << 17);
+      (32'd1 << 16) | (32'd1 << 17) | (32'd1 << 23);
 
   function automatic logic expected_destination(input logic [4:0] rd);
     expected_destination = EXPECTED_RD_MASK[rd];
@@ -233,6 +237,7 @@ module tb_autoisa_ci_ariane_elf;
       5'd15:   expected_ci = 8'd10;
       5'd16:   expected_ci = 8'd7;
       5'd17:   expected_ci = 8'd11;
+      5'd23:   expected_ci = 8'd1;
       default: expected_ci = 8'd0;
     endcase
   endfunction
@@ -248,11 +253,21 @@ module tb_autoisa_ci_ariane_elf;
       5'd14: expected_result = 32'haaaa_aaaa;
       5'd15: expected_result = 32'd1;
       5'd16: expected_result = 32'd36;
+      5'd23: expected_result = 32'd50;
       default: expected_result = '0;
     endcase
   endfunction
 
   always #5ns clk_i = ~clk_i;
+
+  initial begin
+    if (!$value$plusargs("signature_oracle=%s", signature_oracle_hex))
+      signature_oracle_hex = "ci/autoisa/build/software/program_signature_oracle.hex";
+    if (!$value$plusargs("signature_mask=%s", signature_mask_hex))
+      signature_mask_hex = "ci/autoisa/build/software/program_signature_mask.hex";
+    $readmemh(signature_oracle_hex, expected_signature);
+    $readmemh(signature_mask_hex, expected_signature_mask);
+  end
 
   ariane #(
       .CVA6Cfg(CVA6Cfg)
@@ -315,9 +330,14 @@ module tb_autoisa_ci_ariane_elf;
     end else begin
       cycles <= cycles + 1;
       if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire) begin
-        $display("EVENT: issue id=%0d rd=%0d ci=%0d", dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id,
+        $display("EVENT: issue id=%0d rd=%0d ci=%0d operands=%08x/%08x/%08x src3=x%0d",
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id,
                  dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0],
-                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id);
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id,
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_req_i.register.rs[0],
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_req_i.register.rs[1],
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.cvxif_req_i.register.rs[2],
+                 dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.src_addr[2]);
         issue_count <= issue_count + 1;
         if (!expected_destination(dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]))
           $fatal(1, "unexpected AutoISA destination accepted");
@@ -434,29 +454,16 @@ module tb_autoisa_ci_ariane_elf;
             !backpressure_done || issue_rd_seen != EXPECTED_RD_MASK ||
             result_rd_seen != EXPECTED_RD_MASK || transaction_live != '0)
           $fatal(1, "AutoISA protocol evidence is incomplete");
-        for (int unsigned i = 0; i <= 20; i++)
+        for (int unsigned i = 0; i < SIGNATURE_CHECK_WORDS; i++) begin
         $display("SIGNATURE[%0d]=%08x", i, i_memory.signature_q[i]);
-        if (i_memory.signature_q[0] != 32'h4155_544f ||
-            i_memory.signature_q[1] != 32'd1 ||
-            i_memory.signature_q[2] != 32'd1 ||
-            i_memory.signature_q[3] != 32'h0000_1fff ||
-            i_memory.signature_q[4] != 32'd2 ||
-            i_memory.signature_q[5] != 32'd2 ||
-            i_memory.signature_q[7] != EXPECTED_ACCEPTED ||
-            i_memory.signature_q[8] != 32'd0 ||
-            i_memory.signature_q[9] != 32'd0 ||
-            i_memory.signature_q[10] != 32'hffff_fffe ||
-            i_memory.signature_q[11] != 32'd3 ||
-            i_memory.signature_q[12] != 32'd5 ||
-            i_memory.signature_q[13] != 32'd8 ||
-            i_memory.signature_q[14] != 32'd30 ||
-            i_memory.signature_q[15] != 32'haaaa_aaaa ||
-            i_memory.signature_q[16] != 32'd1 ||
-            i_memory.signature_q[17] != 32'd36 ||
-            i_memory.signature_q[18] != 32'h1357_9bdf ||
-            i_memory.signature_q[19] != 32'h2468_ace0 ||
-            i_memory.signature_q[20] != 32'h5349_474e)
-          $fatal(1, "software signature is incomplete or incorrect");
+          if ((i_memory.signature_q[i] & expected_signature_mask[i]) !==
+              (expected_signature[i] & expected_signature_mask[i]))
+            $fatal(
+                1,
+                "software signature mismatch word=%0d actual=%08x expected=%08x mask=%08x",
+                i, i_memory.signature_q[i], expected_signature[i], expected_signature_mask[i]
+            );
+        end
         $display("PASS: expanded AutoISA program-level architectural gate");
         $finish;
       end
@@ -468,6 +475,9 @@ module tb_autoisa_ci_ariane_elf;
   initial begin
 `ifndef AUTOISA_CI_CVXIF
     $fatal(1, "ELF closure test requires AUTOISA_CI_CVXIF");
+`endif
+`ifndef AUTOISA_CI_3R
+    $fatal(1, "ELF closure test requires AUTOISA_CI_3R for L1/D1");
 `endif
   end
 endmodule

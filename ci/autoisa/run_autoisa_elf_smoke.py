@@ -44,6 +44,11 @@ def main() -> int:
         toolchain_cmd.extend(["--toolchain", str(args.toolchain)])
     if run(toolchain_cmd, build / "elf_toolchain.log").returncode:
         return 1
+    if run(
+        [python, str(ROOT / "ci/autoisa/generate_signature_oracle.py")],
+        build / "elf_signature_oracle.log",
+    ).returncode:
+        return 1
     if run([python, str(ROOT / "ci/autoisa/prepare_vivado_filelist.py"),
             "--ariane-elf"], build / "elf_prepare_filelist.log").returncode:
         return 1
@@ -56,7 +61,8 @@ def main() -> int:
     steps = [
         (
             "xvlog",
-            [xvlog, "-sv", "-d", "AUTOISA_CI_CVXIF", "-f", str(filelist)],
+            [xvlog, "-sv", "-d", "AUTOISA_CI_CVXIF", "-d", "AUTOISA_CI_3R",
+             "-f", str(filelist)],
             build / "elf_xvlog.log",
         ),
         (
