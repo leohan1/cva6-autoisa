@@ -455,13 +455,16 @@ module tb_autoisa_ci_ariane_elf;
             result_rd_seen != EXPECTED_RD_MASK || transaction_live != '0)
           $fatal(1, "AutoISA protocol evidence is incomplete");
         for (int unsigned i = 0; i < SIGNATURE_CHECK_WORDS; i++) begin
-        $display("SIGNATURE[%0d]=%08x", i, i_memory.signature_q[i]);
+          $display("SIGNATURE[%0d]=%08x", i, i_memory.signature_q[i]);
           if ((i_memory.signature_q[i] & expected_signature_mask[i]) !==
               (expected_signature[i] & expected_signature_mask[i]))
             $fatal(
                 1,
                 "software signature mismatch word=%0d actual=%08x expected=%08x mask=%08x",
-                i, i_memory.signature_q[i], expected_signature[i], expected_signature_mask[i]
+                i,
+                i_memory.signature_q[i],
+                expected_signature[i],
+                expected_signature_mask[i]
             );
         end
         $display("PASS: expanded AutoISA program-level architectural gate");
