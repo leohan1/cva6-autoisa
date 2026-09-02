@@ -470,7 +470,9 @@ module issue_read_operands
   for (genvar i = 0; i < CVA6Cfg.NrIssuePorts; i++) begin
     assign rs1_fpr[i] = (CVA6Cfg.FpPresent && ariane_pkg::is_rs1_fpr(issue_instr_i[i].op));
     assign rs2_fpr[i] = (CVA6Cfg.FpPresent && ariane_pkg::is_rs2_fpr(issue_instr_i[i].op));
-    assign rs3_fpr[i] = (CVA6Cfg.FpPresent && ariane_pkg::is_imm_fpr(issue_instr_i[i].op));
+    assign rs3_fpr[i] = (CVA6Cfg.FpPresent && ariane_pkg::is_imm_fpr(
+        issue_instr_i[i].op
+    ) && issue_instr_i[i].op != OFFLOAD);
     assign rs3_gpr_cvxif[i] = CVA6Cfg.CvxifEn && (OPERANDS_PER_INSTR == 3)
         && issue_instr_i[i].op == OFFLOAD;
   end
@@ -690,9 +692,10 @@ module issue_read_operands
       // immediates are the third operands in the store case
       // for FP operations, the imm field can also be the third operand from the regfile
       if (OPERANDS_PER_INSTR == 3) begin
-        fu_data_n[i].imm = (CVA6Cfg.FpPresent && is_imm_fpr(issue_instr_i[i].op)) ?
-            {{CVA6Cfg.XLEN - CVA6Cfg.FLen{1'b0}}, operand_c_regfile[i]} :
-            issue_instr_i[i].op == OFFLOAD ? operand_c_regfile[i] : issue_instr_i[i].result;
+        fu_data_n[i].imm = (CVA6Cfg.FpPresent && is_imm_fpr(issue_instr_i[i].op) &&
+                            issue_instr_i[i].op != OFFLOAD) ?
+            {{CVA6Cfg.XLEN - CVA6Cfg.FLen{1'b0}}, operand_c_regfile[i]} : issue_instr_i[i].op ==
+            OFFLOAD ? rdata[i*OPERANDS_PER_INSTR+2] : issue_instr_i[i].result;
       end else begin
         fu_data_n[i].imm = (CVA6Cfg.FpPresent && is_imm_fpr(issue_instr_i[i].op)) ?
             {{CVA6Cfg.XLEN - CVA6Cfg.FLen{1'b0}}, operand_c_regfile[i]} : issue_instr_i[i].result;
@@ -1034,7 +1037,7 @@ module issue_read_operands
     )) ? {{CVA6Cfg.XLEN - CVA6Cfg.FLen{1'b0}}, fprdata[1]} : rdata[i*OPERANDS_PER_INSTR+1];
     assign operand_c_regfile[i] = (OPERANDS_PER_INSTR == 3) ? ((CVA6Cfg.FpPresent && is_imm_fpr(
         issue_instr_i[i].op
-    )) ? operand_c_fpr : operand_c_gpr[i]) : operand_c_fpr;
+    ) && issue_instr_i[i].op != OFFLOAD) ? operand_c_fpr : operand_c_gpr[i]) : operand_c_fpr;
   end
 
   // ----------------------

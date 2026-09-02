@@ -18,6 +18,7 @@ PROGRAM_ENCODINGS = {
     },
     "program_coverage": {
         "L0/D0": 0x000002DB,
+        "L1/D1": 0x70731BDB,
         "L0/D8": 0x107306DB,
         "L0/D9": 0x1273075B,
         "L0/D10": 0x147307DB,

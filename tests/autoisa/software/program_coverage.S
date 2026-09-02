@@ -6,13 +6,17 @@
   .equ SIGNATURE_VERSION,     1
   .equ SIGNATURE_PASS,        1
   .equ SIGNATURE_FAIL_BASE,   0x80000000
-  .equ SIGNATURE_COVERAGE,    0x00001fff
+  .equ SIGNATURE_COVERAGE,    0x00003fff
   .equ SIGNATURE_SENTINEL,    0x5349474e
-  .equ EXPECTED_ACCEPTED,     11
+  .equ EXPECTED_ACCEPTED,     12
   .equ EXPECTED_TRAPS,        2
 
   .macro AUTOISA_L0 ci, rd, rs1, rs2
     .word AUTOISA_L_2R1W_GPR32_MATCH | ((\ci) << 25) | ((\rd) << 7) | ((\rs1) << 15) | ((\rs2) << 20)
+  .endm
+
+  .macro AUTOISA_L1 ci, rd, rs1, rs2, rs3
+    .word AUTOISA_L_3R1W_GPR32_MATCH | ((\ci) << 30) | ((\rs3) << 25) | ((\rd) << 7) | ((\rs1) << 15) | ((\rs2) << 20)
   .endm
 
   .macro AUTOISA_L7 rd, rs1, rs2, imm
@@ -40,6 +44,8 @@ _start:
   la x20, trap_handler
   csrw mtvec, x20
   li x18, 0
+  # Seed the third D1 source before the dependency-heavy D0 sequence.
+  li x24, 8
 
   # Boundary operands: zero, unsigned maximum, and 32-bit wraparound.
   AUTOISA_L0 0, 5, 0, 0
@@ -81,6 +87,15 @@ _start:
   li x20, 0x106
   li x21, 8
   bne x12, x21, fail
+
+  # L1/D1 is the real three-register CV-X-IF path: (6 * 7) + 8 = 50.
+  li x6, 6
+  li x7, 7
+  AUTOISA_L1 1, 23, 6, 7, 24
+  li x20, 0x10e
+  li x21, 50
+  sw x23, 84(x19)
+  bne x23, x21, fail
 
   # More two-source semantics carried by scalar L0/CV-X-IF.
   li x6, 10
@@ -197,7 +212,7 @@ fail:
   .align 3
   .globl signature
 signature:
-  .space 84
+  .space 88
 
   .section .tohost,"aw",@progbits
   .align 3

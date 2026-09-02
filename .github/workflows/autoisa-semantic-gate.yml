@@ -17,20 +17,23 @@ permissions:
   contents: read
 
 jobs:
-  wp8-semantic-differential:
+  g4-semantic-closure:
     name: AutoISA G4 / Semantic Differential
     if: >-
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: [self-hosted, Windows, X64, autoisa-vivado]
-    timeout-minutes: 15
+    timeout-minutes: 35
     env:
       AUTOISA_PYTHON: ${{ vars.AUTOISA_PYTHON }}
       AUTOISA_VIVADO_BIN: ${{ vars.AUTOISA_VIVADO_BIN }}
+      AUTOISA_RISCV_TOOLCHAIN: ${{ vars.AUTOISA_RISCV_TOOLCHAIN }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          submodules: recursive
 
       - name: Validate runner tools
         shell: powershell
@@ -39,27 +42,24 @@ jobs:
             $env:AUTOISA_PYTHON,
             (Join-Path $env:AUTOISA_VIVADO_BIN 'xvlog.bat'),
             (Join-Path $env:AUTOISA_VIVADO_BIN 'xelab.bat'),
-            (Join-Path $env:AUTOISA_VIVADO_BIN 'xsim.bat')
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xsim.bat'),
+            (Join-Path $env:AUTOISA_RISCV_TOOLCHAIN 'bin/riscv-none-elf-gcc.exe')
           )
           foreach ($path in $required) {
             if (-not $path -or -not (Test-Path -LiteralPath $path)) {
-              throw "Required WP8 runner tool is missing: $path"
+              throw "Required G4 runner tool is missing: $path"
             }
           }
 
-      - name: Validate semantic contract and generator
+      - name: Run blocking G4 closure
         shell: powershell
-        run: '& $env:AUTOISA_PYTHON -m unittest -v tests.autoisa.test_semantic_generator'
+        run: '& $env:AUTOISA_PYTHON ci/autoisa/run_g4_gate.py'
 
-      - name: Run blocking semantic differential
-        shell: powershell
-        run: '& $env:AUTOISA_PYTHON ci/autoisa/run_semantic_diff.py --vivado $env:AUTOISA_VIVADO_BIN'
-
-      - name: Upload WP8 evidence
+      - name: Upload G4 evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: autoisa-wp8-${{ github.run_id }}-${{ github.run_attempt }}
+          name: autoisa-g4-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: warn
           retention-days: 30
           path: |
@@ -67,3 +67,8 @@ jobs:
             generated/semantics/semantics.normalized.json
             ci/autoisa/build/semantic_diff/semantic_diff_summary.json
             ci/autoisa/build/semantic_diff/*.log
+            ci/autoisa/build/g3_gate_summary.json
+            ci/autoisa/build/g4_gate_summary.json
+            ci/autoisa/build/elf_*.log
+            ci/autoisa/build/software/program_signature_oracle.json
+            ci/autoisa/build/software/program_coverage.elf
