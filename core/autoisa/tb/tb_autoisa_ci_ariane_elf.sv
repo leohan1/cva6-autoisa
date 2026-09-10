@@ -192,6 +192,221 @@ module autoisa_ci_axi_memory #(
 endmodule
 
 
+module tb_autoisa_ci_ariane_g5_native;
+  function automatic config_pkg::cva6_cfg_t elf_config();
+    config_pkg::cva6_cfg_t cfg;
+    cfg = build_config_pkg::build_config(cva6_config_pkg::cva6_cfg);
+    return cfg;
+  endfunction
+
+  localparam config_pkg::cva6_cfg_t CVA6Cfg = elf_config();
+  localparam logic [CVA6Cfg.VLEN-1:0] BOOT_ADDR = 64'h8000_0000;
+  localparam logic [31:0] G5_MAGIC = 32'h4735_4142;
+
+  logic clk_i = 1'b0;
+  logic rst_ni = 1'b0;
+  ariane_axi::req_t noc_req;
+  ariane_axi::resp_t noc_resp;
+  logic tohost_valid;
+  logic [31:0] tohost_value;
+  int unsigned cycles, issue_count, commit_count, result_count;
+  int unsigned g5_profile, g5_autoisa, g5_throughput;
+  int unsigned first_issue_cycle, last_issue_cycle, first_result_cycle, last_result_cycle;
+  int unsigned issue_commit_cycle_sum, issue_result_cycle_sum;
+  int unsigned inflight_count, inflight_high_watermark;
+  int unsigned issue_cycle[0:7];
+  logic issue_seen, result_seen;
+  logic [31:0] g5_selection[0:2];
+
+  function automatic int unsigned expected_ci_id(input int unsigned profile);
+    unique case (profile)
+      1: expected_ci_id = 0;
+      2: expected_ci_id = 1;
+      8: expected_ci_id = 7;
+      default: expected_ci_id = 0;
+    endcase
+  endfunction
+
+  function automatic logic expected_destination(input int unsigned profile,
+                                                input logic [4:0] rd);
+    if (!g5_throughput) expected_destination = rd == ((profile == 2) ? 11 : 10);
+    else if (profile == 2) expected_destination = rd inside {[11 : 14]};
+    else expected_destination = rd inside {[10 : 13]};
+  endfunction
+
+  function automatic logic [31:0] expected_result(input int unsigned profile);
+    unique case (profile)
+      0, 1: expected_result = 32'd46;
+      2:    expected_result = 32'd50;
+      8:    expected_result = 32'd36;
+      default: expected_result = '0;
+    endcase
+  endfunction
+
+  always #5ns clk_i = ~clk_i;
+
+  initial begin
+    $readmemh("ci/autoisa/build/g5_selection.hex", g5_selection);
+    g5_profile = g5_selection[0];
+    g5_autoisa = g5_selection[1];
+    g5_throughput = g5_selection[2];
+    if (!(g5_profile inside {0, 1, 2, 8}) || g5_autoisa > 1 || g5_throughput > 1 ||
+        (g5_profile == 0 && g5_throughput))
+      $fatal(1, "invalid Native G5-A selection");
+  end
+
+  ariane #(
+      .CVA6Cfg(CVA6Cfg)
+  ) dut (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .boot_addr_i(BOOT_ADDR),
+      .hart_id_i('0),
+      .irq_i('0),
+      .ipi_i(1'b0),
+      .time_irq_i(1'b0),
+      .debug_req_i(1'b0),
+      .rvfi_probes_o(),
+      .noc_req_o(noc_req),
+      .noc_resp_i(noc_resp)
+  );
+
+  autoisa_ci_axi_memory #(
+      .DEFAULT_HEX("ci/autoisa/build/g5_run.hex")
+  ) i_memory (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .req_i(noc_req),
+      .resp_o(noc_resp),
+      .tohost_valid_o(tohost_valid),
+      .tohost_value_o(tohost_value)
+  );
+
+  initial begin
+    repeat (12) @(posedge clk_i);
+    rst_ni = 1'b1;
+  end
+
+  always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
+      cycles <= 0;
+      issue_count <= 0;
+      commit_count <= 0;
+      result_count <= 0;
+      first_issue_cycle <= 0;
+      last_issue_cycle <= 0;
+      first_result_cycle <= 0;
+      last_result_cycle <= 0;
+      issue_result_cycle_sum <= 0;
+      issue_commit_cycle_sum <= 0;
+      inflight_count <= 0;
+      inflight_high_watermark <= 0;
+      issue_seen <= 1'b0;
+      result_seen <= 1'b0;
+      for (int unsigned i = 0; i < 8; i++) issue_cycle[i] <= 0;
+    end else begin
+      cycles <= cycles + 1;
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire) begin
+        issue_count <= issue_count + 1;
+        if (!issue_seen) begin
+          first_issue_cycle <= cycles;
+          issue_seen <= 1'b1;
+        end
+        last_issue_cycle <= cycles;
+        issue_cycle[dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id] <= cycles;
+        if (!g5_autoisa || g5_profile == 0)
+          $fatal(1, "scalar/control workload issued an AutoISA instruction");
+        if (dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id !=
+                expected_ci_id(g5_profile) ||
+            !expected_destination(
+                g5_profile, dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]
+            ))
+          $fatal(1, "Native G5-A issued the wrong semantic or destination");
+      end
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.commit_valid) begin
+        commit_count <= commit_count + 1;
+        if (!(dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire &&
+              dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id ==
+                  dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id))
+          issue_commit_cycle_sum <= issue_commit_cycle_sum + cycles -
+              issue_cycle[dut.gen_cvxif.i_autoisa_ci_cvxif.commit_id];
+      end
+      if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_fire) begin
+        result_count <= result_count + 1;
+        if (!result_seen) begin
+          first_result_cycle <= cycles;
+          result_seen <= 1'b1;
+        end
+        last_result_cycle <= cycles;
+        issue_result_cycle_sum <= issue_result_cycle_sum + cycles -
+            issue_cycle[dut.gen_cvxif.i_autoisa_ci_cvxif.result_id];
+        if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.status !=
+                autoisa_ci_types_pkg::AUTOISA_STATUS_OK ||
+            dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0] !=
+                expected_result(g5_profile))
+          $fatal(1, "Native G5-A result mismatch");
+      end
+      unique case ({dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire,
+                    dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_fire})
+        2'b10: begin
+          inflight_count <= inflight_count + 1;
+          if (inflight_count + 1 > inflight_high_watermark)
+            inflight_high_watermark <= inflight_count + 1;
+        end
+        2'b01: inflight_count <= inflight_count - 1;
+        default: begin
+        end
+      endcase
+
+      if (tohost_valid) begin
+        if (tohost_value != 32'd1)
+          $fatal(1, "Native G5-A workload reported failure");
+        if (i_memory.signature_q[0] != G5_MAGIC ||
+            i_memory.signature_q[1] != g5_profile ||
+            i_memory.signature_q[2] != g5_autoisa ||
+            i_memory.signature_q[3] != expected_result(g5_profile) * 64 ||
+            i_memory.signature_q[4] != 0 ||
+            i_memory.signature_q[5] == 0 || i_memory.signature_q[6] == 0 ||
+            i_memory.signature_q[7] != 64 ||
+            i_memory.signature_q[8] != g5_throughput)
+          $fatal(1, "Native G5-A signature mismatch");
+        if (g5_autoisa && g5_profile != 0) begin
+          if (issue_count != 64 || commit_count != 64 || result_count != 64)
+            $fatal(1, "Native G5-A CI count mismatch");
+        end else if (issue_count != 0 || commit_count != 0 || result_count != 0) begin
+          $fatal(1, "Native G5-A scalar/control CI count is nonzero");
+        end
+        $display(
+            "G5_DATA: profile=P%0d mode=%0d pattern=%0d roi_cycles=%0d roi_instret=%0d checksum0=%08x checksum1=%08x ci_issue=%0d ci_commit=%0d ci_result=%0d",
+            g5_profile, g5_autoisa, g5_throughput, i_memory.signature_q[5],
+            i_memory.signature_q[6], i_memory.signature_q[3], i_memory.signature_q[4],
+            issue_count, commit_count, result_count
+        );
+        $display(
+            "G5_PIPE: issue_span=%0d result_span=%0d issue_commit_sum=%0d issue_result_sum=%0d inflight_hwm=%0d",
+            issue_count > 1 ? last_issue_cycle - first_issue_cycle + 1 : issue_count,
+            result_count > 1 ? last_result_cycle - first_result_cycle + 1 : result_count,
+            issue_commit_cycle_sum, issue_result_cycle_sum, inflight_high_watermark
+        );
+        $display("PASS: Native G5-A P%0d mode=%0d pattern=%0d", g5_profile, g5_autoisa,
+                 g5_throughput);
+        $finish;
+      end
+      if (cycles == 40000) $fatal(1, "timeout waiting for Native G5-A tohost");
+    end
+  end
+
+  initial begin
+`ifndef AUTOISA_CI_CVXIF
+    $fatal(1, "Native G5-A requires AUTOISA_CI_CVXIF");
+`endif
+`ifndef AUTOISA_CI_3R
+    $fatal(1, "Native G5-A requires AUTOISA_CI_3R");
+`endif
+  end
+endmodule
+
+
 module tb_autoisa_ci_ariane_elf;
   function automatic config_pkg::cva6_cfg_t elf_config();
     config_pkg::cva6_cfg_t cfg;

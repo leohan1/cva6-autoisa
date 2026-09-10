@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: Apache-2.0
+name: autoisa-g5-native-evidence
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: autoisa-g5-native-evidence-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  g5-native-benefit:
+    name: AutoISA G5-A / Native Evidence
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Windows, X64, autoisa-vivado]
+    timeout-minutes: 20
+    env:
+      AUTOISA_PYTHON: ${{ vars.AUTOISA_PYTHON }}
+      AUTOISA_VIVADO_BIN: ${{ vars.AUTOISA_VIVADO_BIN }}
+      AUTOISA_RISCV_TOOLCHAIN: ${{ vars.AUTOISA_RISCV_TOOLCHAIN }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Validate runner tools
+        shell: powershell
+        run: |
+          $required = @(
+            $env:AUTOISA_PYTHON,
+            (Join-Path $env:AUTOISA_VIVADO_BIN 'xvlog.bat'),
+            (Join-Path $env:AUTOISA_RISCV_TOOLCHAIN 'bin/riscv-none-elf-gcc.exe')
+          )
+          foreach ($path in $required) {
+            if (-not $path -or -not (Test-Path -LiteralPath $path)) {
+              throw "Required G5-A runner tool is missing: $path"
+            }
+          }
+
+      - name: Validate G5-A orchestration
+        shell: powershell
+        run: >-
+          & $env:AUTOISA_PYTHON -m unittest -v
+          tests.autoisa.test_g5_workloads
+          tests.autoisa.test_g5_native
+
+      - name: Run Native G5-A evidence gate
+        shell: powershell
+        run: '& $env:AUTOISA_PYTHON ci/autoisa/run_g5_native.py'
+
+      - name: Upload Native G5-A evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autoisa-g5-native-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            ci/autoisa/build/g5_native_summary.json
+            ci/autoisa/build/g5_native_*.log
+            ci/autoisa/build/g5/g5_elf_manifest.json
+            ci/autoisa/build/g5/p0_*.elf
+            ci/autoisa/build/g5/p1_*.elf
+            ci/autoisa/build/g5/p2_*.elf
+            ci/autoisa/build/g5/p8_*.elf
