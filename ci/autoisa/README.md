@@ -278,7 +278,8 @@ RTL/reference differential, and the complete G3 D0/D1/D7 program-signature
 closure. Evidence is summarized in `ci/autoisa/build/g4_gate_summary.json`.
 
 - Q00-Q15 evidence audit: 16/16 PASS.
-- Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
+- Harness regression: 16/16 PASS, including both 100k-cycle random configurations
+  and the reference-backed G3E pre-closure.
 - Full Ariane smoke: stock, `AUTOISA_CI_CVXIF` 2R, and `AUTOISA_CI_3R`
   all compile, elaborate, and run to 195 ns with zero actionable warnings.
 - Known XSim assertion limitations and 0ns HPDCache initialization messages are
@@ -288,6 +289,26 @@ The minimum program-level gate is now closed: the D0 ELF executes through the
 real Ariane/CV-X-IF/AutoISA path, returns 42, writes the destination register,
 passes a software branch check, and signals `tohost=1`. Broader instruction,
 exception, interrupt, and workload coverage remains outside this minimum gate.
+
+## Extended G3E pre-closure
+
+Run the reference-backed P3-P7 Extended pre-closure with:
+
+```text
+make -C ci/autoisa g3e-preclosure
+```
+
+The gate regenerates an oracle from the frozen G5 workload contract and the
+generated Layout/Semantic models. It then drives P3-P7 through the real
+Direct-CI sidecar decoder, 1-6R operand gather, concurrent shell, destination
+ownership, and scalar/pair writeback serializer. Writeback is applied to an
+architectural GPR model and checked against the generated reference results.
+RAW/WAW visibility is checked for every destination while ownership is live.
+
+This is deliberately named a pre-closure. Its summary records
+`whole_core_integrated=false`: the CVA6 scoreboard, register-file arbitration,
+forwarding, commit/kill, and pair-writeback injection still require real core
+integration before P3-P7 can be called whole-core ELF coverage.
 
 ## G5 paired workload baseline
 

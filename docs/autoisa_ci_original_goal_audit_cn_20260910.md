@@ -30,7 +30,7 @@
 | G0 Layout schema/generator/encoder/decoder | 10k round-trip、确定性生成、越界/重叠/能力校验通过 | 完成 |
 | G1 单请求功能切片 | Harness、semantic engine、协议错误路径测试通过 | 完成 |
 | G2 并发 Harness | request/inflight/result queue、kill/flush、multi-engine、两组 100k 随机通过 | 完成 |
-| G3 Host transport 与程序闭环 | Native D0/D1/D7 经真实 Ariane/CV-X-IF 执行；1-6R gather、2W serializer 仅在 sidecar TB 中通过 | 部分完成（当前收窄门禁通过） |
+| G3 Host transport 与程序闭环 | Native D0/D1/D7 经真实 Ariane/CV-X-IF 执行；Extended P3-P7 已完成 reference-backed sidecar + 架构 GPR 模型前置闭环 | 部分完成（Extended 整核接线仍未完成） |
 | G4 生成语义闭环 | D0-D7 reference model、4 类 mutation、Layout/Semantic 双向检查、80k differential、D0/D1/D7 reference-backed signature 全通过 | 完成 |
 | G5 workload benefit | P0-P8 契约与 12 对 ELF 已冻结；Native P1/P2/P8 latency+throughput 已执行 | 未通过：证据完整但周期均回退 |
 | G6 PPA/release | 缺少整核三配置面积/Fmax/功耗与统一 release manifest | 未完成 |
@@ -70,7 +70,7 @@
 - Python/unit：38/38 PASS；
 - source manifest：21 production sources，ABI v1.0，PASS；
 - Q00-Q15 evidence audit：16/16 PASS；
-- Harness RTL：15/15 testbenches PASS；
+- Harness RTL：16/16 testbenches PASS（含 G3E P3-P7 前置闭环）；
 - Ariane reset smoke：stock、Native 2R、Native 3R 三配置全部 PASS；
 - semantic differential：80,000 vectors PASS（D0-D7 各 10,000）；
 - G4 gate：PASS；
