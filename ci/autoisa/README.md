@@ -276,8 +276,10 @@ The evidence summary and simulator logs are written below
 Layout/Semantic bidirectional ID and shape consistency, the 80,000-vector
 RTL/reference differential, and the complete G3 D0/D1/D7 program-signature
 closure. Evidence is summarized in `ci/autoisa/build/g4_gate_summary.json`.
+
 - Q00-Q15 evidence audit: 16/16 PASS.
-- Harness regression: 15/15 PASS, including both 100k-cycle random configurations.
+- Harness regression: 16/16 PASS, including both 100k-cycle random configurations
+  and the reference-backed G3E pre-closure.
 - Full Ariane smoke: stock, `AUTOISA_CI_CVXIF` 2R, and `AUTOISA_CI_3R`
   all compile, elaborate, and run to 195 ns with zero actionable warnings.
 - Known XSim assertion limitations and 0ns HPDCache initialization messages are
@@ -287,3 +289,57 @@ The minimum program-level gate is now closed: the D0 ELF executes through the
 real Ariane/CV-X-IF/AutoISA path, returns 42, writes the destination register,
 passes a software branch check, and signals `tohost=1`. Broader instruction,
 exception, interrupt, and workload coverage remains outside this minimum gate.
+
+## Extended G3E pre-closure
+
+Run the reference-backed P3-P7 Extended pre-closure with:
+
+```text
+make -C ci/autoisa g3e-preclosure
+```
+
+The gate regenerates an oracle from the frozen G5 workload contract and the
+generated Layout/Semantic models. It then drives P3-P7 through the real
+Direct-CI sidecar decoder, 1-6R operand gather, concurrent shell, destination
+ownership, and scalar/pair writeback serializer. Writeback is applied to an
+architectural GPR model and checked against the generated reference results.
+RAW/WAW visibility is checked for every destination while ownership is live.
+
+This is deliberately named a pre-closure. Its summary records
+`whole_core_integrated=false`: the CVA6 scoreboard, register-file arbitration,
+forwarding, commit/kill, and pair-writeback injection still require real core
+integration before P3-P7 can be called whole-core ELF coverage.
+
+## G5 paired workload baseline
+
+`config/g5_workloads.json` freezes P0-P8 against the generated Layout and
+Semantic catalog hashes. P0 is a zero-CI control; P1-P8 map one-to-one to
+D0-D7/L0-L7. Build the scalar and AutoISA ELF pair for every profile with:
+
+```text
+make -C ci/autoisa g5-elfs
+```
+
+The build writes 24 ELF files, disassemblies, binaries, and a hash-bearing
+`ci/autoisa/build/g5/g5_elf_manifest.json`. Every profile has a latency pair;
+P1, P2, and P8 also have a throughput pair with four independent destinations.
+Those three profiles use the currently integrated native CV-X-IF backend.
+P3-P7 are intentionally marked `build_only`: their 4R/6R or pair-result layouts
+require the Direct-CI extended program path before their benefit can be measured
+on Ariane. ELF construction is not reported as execution or performance
+evidence.
+
+Run the currently executable Native G5-A subset with:
+
+```text
+make -C ci/autoisa g5-native
+```
+
+This compiles Ariane once, executes the P0 latency pair plus latency and
+throughput pairs for P1/P2/P8, checks workload signatures and CI
+issue/commit/result counts, and writes ROI cycle/instruction A/B evidence to
+`ci/autoisa/build/g5_native_summary.json`. Throughput evidence also records
+issue/result spans, average issue interval, average issue-to-result latency,
+and maximum in-flight depth. The check passes when evidence is complete and
+internally consistent; the JSON reports `benefit_outcome` separately. It is a
+calibration check, not yet a claim that the measured Native path is faster.

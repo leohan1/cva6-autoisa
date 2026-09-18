@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://autoisa.dev/schemas/g5_workload_v1.schema.json",
+  "title": "AutoISA G5 paired workload contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "xlen", "iterations", "layout_catalog_sha256", "semantic_catalog_sha256", "profiles"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"const": "1.0"},
+    "xlen": {"const": 32},
+    "iterations": {"type": "integer", "minimum": 1},
+    "layout_catalog_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "semantic_catalog_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "profiles": {
+      "type": "array", "minItems": 9, "maxItems": 9,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "kind", "semantic_id", "layout_id", "backend", "execution_status", "measurement_modes", "inputs", "source_registers", "destination_registers", "immediate", "instruction_encoding", "throughput_instruction_encodings", "expected_results", "expected_ci_retired"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^P[0-8]$"},
+          "kind": {"enum": ["control", "semantic"]},
+          "semantic_id": {"type": ["integer", "null"], "minimum": 0, "maximum": 7},
+          "layout_id": {"type": ["integer", "null"], "minimum": 0, "maximum": 7},
+          "backend": {"enum": ["NONE", "AUTOISA_CVXIF_NATIVE", "AUTOISA_DIRECT_CI_EXTENDED"]},
+          "execution_status": {"enum": ["runnable", "build_only"]},
+          "measurement_modes": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"enum": ["latency", "throughput"]}},
+          "inputs": {"type": "array", "minItems": 2, "maxItems": 6, "items": {"type": "integer", "minimum": 0, "maximum": 4294967295}},
+          "source_registers": {"type": "array", "maxItems": 6, "items": {"type": "integer", "minimum": 0, "maximum": 31}},
+          "destination_registers": {"type": "array", "maxItems": 2, "items": {"type": "integer", "minimum": 0, "maximum": 31}},
+          "immediate": {"type": ["integer", "null"], "minimum": -512, "maximum": 511},
+          "instruction_encoding": {"type": ["string", "null"], "pattern": "^0x[0-9a-f]{8}$"},
+          "throughput_instruction_encodings": {"type": "array", "maxItems": 4, "items": {"type": "string", "pattern": "^0x[0-9a-f]{8}$"}},
+          "expected_results": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"type": "integer", "minimum": 0, "maximum": 4294967295}},
+          "expected_ci_retired": {"type": "integer", "minimum": 0}
+        }
+      }
+    }
+  }
+}

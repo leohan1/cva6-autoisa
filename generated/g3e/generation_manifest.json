@@ -1,0 +1,145 @@
+{
+  "layout_catalog_sha256": "7ad9fd792edf60d848fac03c27ae95bd9023b683b0c769f28e5d3dfb8f4afd70",
+  "profile_count": 5,
+  "records": [
+    {
+      "destinations": [
+        12
+      ],
+      "encoding": "0x1344285b",
+      "expected_results": [
+        29,
+        0
+      ],
+      "inputs": [
+        3,
+        5,
+        7,
+        11
+      ],
+      "layout_id": 2,
+      "profile": "P3",
+      "semantic_id": 2,
+      "sources": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "destinations": [
+        10,
+        11
+      ],
+      "encoding": "0x0694355b",
+      "expected_results": [
+        29,
+        13
+      ],
+      "inputs": [
+        21,
+        8
+      ],
+      "layout_id": 3,
+      "profile": "P4",
+      "semantic_id": 3,
+      "sources": [
+        8,
+        9
+      ]
+    },
+    {
+      "destinations": [
+        12,
+        13
+      ],
+      "encoding": "0x2b44425b",
+      "expected_results": [
+        4294967285,
+        29
+      ],
+      "inputs": [
+        2,
+        3,
+        5,
+        7
+      ],
+      "layout_id": 4,
+      "profile": "P5",
+      "semantic_id": 4,
+      "sources": [
+        8,
+        9,
+        10,
+        11
+      ]
+    },
+    {
+      "destinations": [
+        14
+      ],
+      "encoding": "0x0b1a232b",
+      "expected_results": [
+        21,
+        0
+      ],
+      "inputs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "layout_id": 5,
+      "profile": "P6",
+      "semantic_id": 5,
+      "sources": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    },
+    {
+      "destinations": [
+        14,
+        15
+      ],
+      "encoding": "0x58d11f7b",
+      "expected_results": [
+        68,
+        28
+      ],
+      "inputs": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "layout_id": 6,
+      "profile": "P7",
+      "semantic_id": 6,
+      "sources": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    }
+  ],
+  "schema_version": "1.0",
+  "scope": "G3E pre-closure; not CVA6 whole-core integration",
+  "semantic_catalog_sha256": "fbadcad47d75a3b5b54a7c3a62066888cdfa342b5f1498ebfee4e5435e98f3f0",
+  "status": "PASS",
+  "vector_sha256": "5508bf34e44440081164f28d1d9494809c956de517f344e0ce4c60608c741e13",
+  "words_per_vector": 15,
+  "workload_contract_sha256": "e5344bd985ef6f38caf8e8b7153464e4a9c2234911ad8ed34689b39c1892442a"
+}

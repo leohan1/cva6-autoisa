@@ -121,6 +121,13 @@ TESTBENCHES = [
         "log": "autoisa_ci_cva6_host_transport.log",
     },
     {
+        "name": "autoisa_ci_g3e_preclosure",
+        "top": "tb_autoisa_ci_g3e_preclosure",
+        "snapshot": "autoisa_sim_g3e_preclosure",
+        "filelist": "core/autoisa/tb/autoisa_ci_g3e_preclosure.f",
+        "log": "autoisa_ci_g3e_preclosure.log",
+    },
+    {
         "name": "autoisa_ci_cvxif_coprocessor",
         "top": "tb_autoisa_ci_cvxif_coprocessor",
         "snapshot": "autoisa_sim_cvxif",
@@ -252,6 +259,12 @@ def main() -> int:
         if result.returncode != 0:
             print("ERROR: Semantic v2 generation/validation failed", file=sys.stderr)
             return 2
+
+    g3e_generator = root / "ci/autoisa/generate_g3e_oracle.py"
+    result = step("g3e-oracle", [sys.executable, str(g3e_generator)], cwd=root)
+    if result.returncode != 0:
+        print("ERROR: G3E reference-oracle generation failed", file=sys.stderr)
+        return 2
 
     try:
         xvlog = find_tool(vivado_bin, "xvlog")
