@@ -227,8 +227,7 @@ module tb_autoisa_ci_ariane_g5_native;
     endcase
   endfunction
 
-  function automatic logic expected_destination(input int unsigned profile,
-                                                input logic [4:0] rd);
+  function automatic logic expected_destination(input int unsigned profile, input logic [4:0] rd);
     if (!g5_throughput) expected_destination = rd == ((profile == 2) ? 11 : 10);
     else if (profile == 2) expected_destination = rd inside {[11 : 14]};
     else expected_destination = rd inside {[10 : 13]};
@@ -316,9 +315,9 @@ module tb_autoisa_ci_ariane_g5_native;
         issue_cycle[dut.gen_cvxif.i_autoisa_ci_cvxif.issue_id] <= cycles;
         if (!g5_autoisa || g5_profile == 0)
           $fatal(1, "scalar/control workload issued an AutoISA instruction");
-        if (dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id !=
-                expected_ci_id(g5_profile) ||
-            !expected_destination(
+        if (dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.ci_id != expected_ci_id(
+                g5_profile
+            ) || !expected_destination(
                 g5_profile, dut.gen_cvxif.i_autoisa_ci_cvxif.decoded_desc.dst_addr[0]
             ))
           $fatal(1, "Native G5-A issued the wrong semantic or destination");
@@ -343,11 +342,15 @@ module tb_autoisa_ci_ariane_g5_native;
         if (dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.status !=
                 autoisa_ci_types_pkg::AUTOISA_STATUS_OK ||
             dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result.results[0] !=
-                expected_result(g5_profile))
+                expected_result(
+                g5_profile
+            ))
           $fatal(1, "Native G5-A result mismatch");
       end
-      unique case ({dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire,
-                    dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_fire})
+      unique case ({
+        dut.gen_cvxif.i_autoisa_ci_cvxif.shell_req_fire,
+        dut.gen_cvxif.i_autoisa_ci_cvxif.shell_result_fire
+      })
         2'b10: begin
           inflight_count <= inflight_count + 1;
           if (inflight_count + 1 > inflight_high_watermark)
@@ -359,16 +362,15 @@ module tb_autoisa_ci_ariane_g5_native;
       endcase
 
       if (tohost_valid) begin
-        if (tohost_value != 32'd1)
-          $fatal(1, "Native G5-A workload reported failure");
+        if (tohost_value != 32'd1) $fatal(1, "Native G5-A workload reported failure");
         if (i_memory.signature_q[0] != G5_MAGIC ||
             i_memory.signature_q[1] != g5_profile ||
             i_memory.signature_q[2] != g5_autoisa ||
-            i_memory.signature_q[3] != expected_result(g5_profile) * 64 ||
-            i_memory.signature_q[4] != 0 ||
-            i_memory.signature_q[5] == 0 || i_memory.signature_q[6] == 0 ||
-            i_memory.signature_q[7] != 64 ||
-            i_memory.signature_q[8] != g5_throughput)
+            i_memory.signature_q[3] != expected_result(
+                g5_profile
+            ) * 64 || i_memory.signature_q[4] != 0 || i_memory.signature_q[5] == 0 ||
+                i_memory.signature_q[6] == 0 || i_memory.signature_q[7] != 64 ||
+                i_memory.signature_q[8] != g5_throughput)
           $fatal(1, "Native G5-A signature mismatch");
         if (g5_autoisa && g5_profile != 0) begin
           if (issue_count != 64 || commit_count != 64 || result_count != 64)
@@ -379,15 +381,13 @@ module tb_autoisa_ci_ariane_g5_native;
         $display(
             "G5_DATA: profile=P%0d mode=%0d pattern=%0d roi_cycles=%0d roi_instret=%0d checksum0=%08x checksum1=%08x ci_issue=%0d ci_commit=%0d ci_result=%0d",
             g5_profile, g5_autoisa, g5_throughput, i_memory.signature_q[5],
-            i_memory.signature_q[6], i_memory.signature_q[3], i_memory.signature_q[4],
-            issue_count, commit_count, result_count
-        );
+            i_memory.signature_q[6], i_memory.signature_q[3], i_memory.signature_q[4], issue_count,
+            commit_count, result_count);
         $display(
             "G5_PIPE: issue_span=%0d result_span=%0d issue_commit_sum=%0d issue_result_sum=%0d inflight_hwm=%0d",
             issue_count > 1 ? last_issue_cycle - first_issue_cycle + 1 : issue_count,
             result_count > 1 ? last_result_cycle - first_result_cycle + 1 : result_count,
-            issue_commit_cycle_sum, issue_result_cycle_sum, inflight_high_watermark
-        );
+            issue_commit_cycle_sum, issue_result_cycle_sum, inflight_high_watermark);
         $display("PASS: Native G5-A P%0d mode=%0d pattern=%0d", g5_profile, g5_autoisa,
                  g5_throughput);
         $finish;

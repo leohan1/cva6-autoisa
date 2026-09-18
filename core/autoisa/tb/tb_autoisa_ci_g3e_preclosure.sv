@@ -23,7 +23,7 @@ module tb_autoisa_ci_g3e_preclosure;
   logic [2:0] std_src_valid;
   logic [2:0][4:0] std_src_addr;
   logic std_dst_valid, std_raw, std_waw;
-  logic [4:0] std_dst_addr;
+  logic [ 4:0] std_dst_addr;
   logic [31:0] busy_mask;
   logic wb_valid, wb_ready, wb_we, wb_last;
   logic [TID_W-1:0] wb_id;
@@ -94,8 +94,7 @@ module tb_autoisa_ci_g3e_preclosure;
       .wb_beat_count_o(wb_beats)
   );
 
-  task automatic issue_extended(input logic [TID_W-1:0] id,
-                                input logic [31:0] instr);
+  task automatic issue_extended(input logic [TID_W-1:0] id, input logic [31:0] instr);
     int unsigned cycles;
     begin
       @(negedge clk);
@@ -143,8 +142,7 @@ module tb_autoisa_ci_g3e_preclosure;
     end
   endtask
 
-  task automatic receive_results(input logic [TID_W-1:0] id,
-                                 input int unsigned destination_count,
+  task automatic receive_results(input logic [TID_W-1:0] id, input int unsigned destination_count,
                                  input logic [31:0] packed_destinations,
                                  input logic [1:0][31:0] expected);
     int unsigned beat, cycles;
@@ -167,8 +165,7 @@ module tb_autoisa_ci_g3e_preclosure;
         @(posedge clk);
         @(negedge clk);
       end
-      if (destination_occupancy != 0)
-        $fatal(1, "G3E destination ownership leaked id=%0d", id);
+      if (destination_occupancy != 0) $fatal(1, "G3E destination ownership leaked id=%0d", id);
     end
   endtask
 
@@ -210,15 +207,16 @@ module tb_autoisa_ci_g3e_preclosure;
       end
 
       issue_extended(profile_index + 1, vector_instr);
-      for (destination_index = 0; destination_index < destination_count_word;
-           destination_index++) begin
+      for (
+          destination_index = 0; destination_index < destination_count_word; destination_index++
+      ) begin
         check_hazards(destination_pack[destination_index*5+:5]);
       end
       commit_extended(profile_index + 1);
-      receive_results(profile_index + 1, destination_count_word, destination_pack,
-                      expected_words);
-      for (destination_index = 0; destination_index < destination_count_word;
-           destination_index++) begin
+      receive_results(profile_index + 1, destination_count_word, destination_pack, expected_words);
+      for (
+          destination_index = 0; destination_index < destination_count_word; destination_index++
+      ) begin
         register_address = destination_pack[destination_index*5+:5];
         if (gpr[register_address] != expected_words[destination_index])
           $fatal(1, "G3E architectural state mismatch P%0d", profile_word);
@@ -226,8 +224,14 @@ module tb_autoisa_ci_g3e_preclosure;
     end
 
     if (shell_accepted != 5 || shell_retired != 5 || wb_results != 5 || wb_beats != 8)
-      $fatal(1, "G3E counters mismatch accepted=%0d retired=%0d results=%0d beats=%0d",
-             shell_accepted, shell_retired, wb_results, wb_beats);
+      $fatal(
+          1,
+          "G3E counters mismatch accepted=%0d retired=%0d results=%0d beats=%0d",
+          shell_accepted,
+          shell_retired,
+          wb_results,
+          wb_beats
+      );
     $display("DATA: profiles=5 scalar_results=2 pair_results=3 wb_beats=8");
     $display("PASS: G3E reference-backed P3-P7 transport architectural pre-closure");
     $finish;
