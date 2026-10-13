@@ -1,5 +1,214 @@
 [
   {
+    "id": 38338428362,
+    "source": "github-actions",
+    "simulator": "verilator",
+    "run_number": 51,
+    "status": "completed",
+    "conclusion": "success",
+    "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362",
+    "head_branch": "autoisa-rtl-capability-v1",
+    "head_sha": "0682db9c",
+    "event": "schedule",
+    "created_at": "2026-10-13T02:45:40Z",
+    "updated_at": "2026-10-13T03:46:01Z",
+    "run_started_at": "2026-10-13T02:45:40Z",
+    "duration_seconds": 3621,
+    "total_jobs": 17,
+    "passed_jobs": 17,
+    "failed_jobs": 0,
+    "skipped_jobs": 0,
+    "jobs": [
+      {
+        "name": "RV64 Tier2 cv64a6_imafdc_sv39_hpdcache_wb / cv64a6_imafdc_tests",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:51:13Z",
+        "duration_seconds": 294,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869257",
+        "arch": "rv64",
+        "config": "cv64a6_imafdc_sv39_hpdcache_wb",
+        "testcase": "cv64a6_imafdc_tests"
+      },
+      {
+        "name": "RV64 Tier2 cv64a6_imafdc_sv39_hpdcache_wb / dv-riscv-compliance",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:19:23Z",
+        "duration_seconds": 1984,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869280",
+        "arch": "rv64",
+        "config": "cv64a6_imafdc_sv39_hpdcache_wb",
+        "testcase": "dv-riscv-compliance"
+      },
+      {
+        "name": "RV64 Tier2 cv64a6_imafdc_sv39_hpdcache_wb / dv-riscv-arch-test",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:33:13Z",
+        "duration_seconds": 2814,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869283",
+        "arch": "rv64",
+        "config": "cv64a6_imafdc_sv39_hpdcache_wb",
+        "testcase": "dv-riscv-arch-test"
+      },
+      {
+        "name": "RV64 Tier2 cv64a6_imafdc_sv39_hpdcache_wb / dv-riscv-tests-p",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:08:58Z",
+        "duration_seconds": 1359,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869291",
+        "arch": "rv64",
+        "config": "cv64a6_imafdc_sv39_hpdcache_wb",
+        "testcase": "dv-riscv-tests-p"
+      },
+      {
+        "name": "RV64 Tier2 cv64a6_imafdc_sv39_hpdcache_wb / dv-riscv-tests-v",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:46:00Z",
+        "duration_seconds": 3581,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869334",
+        "arch": "rv64",
+        "config": "cv64a6_imafdc_sv39_hpdcache_wb",
+        "testcase": "dv-riscv-tests-v"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / hwconfig_tests",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:48:34Z",
+        "duration_seconds": 135,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869440",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "hwconfig_tests"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / dv-riscv-arch-test",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:09:11Z",
+        "duration_seconds": 1372,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869447",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "dv-riscv-arch-test"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / cv32a6_tests",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:48:55Z",
+        "duration_seconds": 156,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869448",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "cv32a6_tests"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / dv-riscv-compliance",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:09:46Z",
+        "duration_seconds": 1407,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869468",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "dv-riscv-compliance"
+      },
+      {
+        "name": "RV32 Tier2 cv32a60x / cv32a6_tests",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:49:30Z",
+        "duration_seconds": 191,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869480",
+        "arch": "rv32",
+        "config": "cv32a60x",
+        "testcase": "cv32a6_tests"
+      },
+      {
+        "name": "RV32 Tier2 cv32a60x / dv-riscv-tests-p",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:03:33Z",
+        "duration_seconds": 1034,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869506",
+        "arch": "rv32",
+        "config": "cv32a60x",
+        "testcase": "dv-riscv-tests-p"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / dv-csr-embedded-tests",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:50:07Z",
+        "duration_seconds": 228,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869507",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "dv-csr-embedded-tests"
+      },
+      {
+        "name": "RV32 Tier2 cv32a60x / dv-riscv-arch-test",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:22:31Z",
+        "duration_seconds": 2172,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869549",
+        "arch": "rv32",
+        "config": "cv32a60x",
+        "testcase": "dv-riscv-arch-test"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / coremark",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:20Z",
+        "completed_at": "2026-10-13T02:52:26Z",
+        "duration_seconds": 366,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869572",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "coremark"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / dv-riscv-tests-p",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:00:23Z",
+        "duration_seconds": 844,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869593",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "dv-riscv-tests-p"
+      },
+      {
+        "name": "RV32 Tier2 cv32a65x / smoke-tests-cv32a65x",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T02:48:40Z",
+        "duration_seconds": 141,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869603",
+        "arch": "rv32",
+        "config": "cv32a65x",
+        "testcase": "smoke-tests-cv32a65x"
+      },
+      {
+        "name": "RV32 Tier2 cv32a60x / dv-riscv-compliance",
+        "conclusion": "success",
+        "started_at": "2026-10-13T02:46:19Z",
+        "completed_at": "2026-10-13T03:02:35Z",
+        "duration_seconds": 976,
+        "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/38338428362/job/115103869714",
+        "arch": "rv32",
+        "config": "cv32a60x",
+        "testcase": "dv-riscv-compliance"
+      }
+    ]
+  },
+  {
     "id": 38189432716,
     "source": "github-actions",
     "simulator": "verilator",
@@ -10239,26 +10448,5 @@
         "testcase": "dv-riscv-arch-test"
       }
     ]
-  },
-  {
-    "id": 32669783838,
-    "source": "github-actions",
-    "simulator": "verilator",
-    "run_number": 1,
-    "status": "completed",
-    "conclusion": "failure",
-    "html_url": "https://github.com/leohan1/cva6-autoisa/actions/runs/32669783838",
-    "head_branch": "autoisa-rtl-capability-v1",
-    "head_sha": "f06a1ef9",
-    "event": "schedule",
-    "created_at": "2026-08-23T22:10:35Z",
-    "updated_at": "2026-08-23T22:11:46Z",
-    "run_started_at": "2026-08-23T22:10:35Z",
-    "duration_seconds": 71,
-    "total_jobs": 0,
-    "passed_jobs": 0,
-    "failed_jobs": 0,
-    "skipped_jobs": 0,
-    "jobs": []
   }
 ]
